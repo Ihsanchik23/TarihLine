@@ -905,7 +905,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_event_draft: {
+        Args: {
+          p_category: string
+          p_date_precision: string
+          p_description_kk: string
+          p_description_ru: string
+          p_end_year: number | null
+          p_significance_kk: string
+          p_significance_ru: string
+          p_slug: string
+          p_source_author: string
+          p_source_license: string
+          p_source_publisher: string
+          p_source_title: string
+          p_source_url: string
+          p_start_year: number
+          p_summary_kk: string
+          p_summary_ru: string
+          p_title_kk: string
+          p_title_ru: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

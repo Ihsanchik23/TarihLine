@@ -71,6 +71,7 @@ export default async function AdminDashboardPage() {
         <span className="admin-kicker">Следующий модуль</span>
         <h2>Редактор исторических материалов</h2>
         <p>Формы событий и личностей будут сохранять двуязычные черновики, координаты и проверенные источники.</p>
+        <Link className="admin-primary-link" href="/admin/events">Перейти к событиям</Link>
       </section>
     </div>
   );
