@@ -68,6 +68,15 @@ async function loadMapLayers(client: SupabaseServerClient) {
   });
 }
 
+export async function getHistoricalMapLayers() {
+  try {
+    const supabase = await createClient();
+    return await loadMapLayers(supabase);
+  } catch {
+    return [];
+  }
+}
+
 function eventDateLabel(detail: EventDetailRow) {
   if (detail.start_date) {
     const date = new Date(`${detail.start_date}T00:00:00Z`);

@@ -56,7 +56,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
               : "Период не указан";
 
             return (
-              <article className="admin-record-row" key={event.id}>
+              <Link className="admin-record-row" href={`/admin/events/${event.id}`} key={event.id}>
                 <div className="admin-record-period">{period}</div>
                 <div className="admin-record-copy">
                   <h2>{event.title_ru}</h2>
@@ -68,7 +68,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                     {statusLabels[event.status] ?? event.status}
                   </span>
                 </div>
-              </article>
+              </Link>
             );
           })}
         </section>

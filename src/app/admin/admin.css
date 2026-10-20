@@ -299,6 +299,13 @@
   align-items: center;
   gap: 24px;
   border-bottom: 1px solid #e0e1dc;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 160ms ease;
+}
+
+.admin-record-row:hover {
+  background: #f7f3e9;
 }
 
 .admin-record-row:last-child {
@@ -445,6 +452,10 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.admin-form-grid-location {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .admin-form-grid label {
   display: grid;
   align-content: start;
@@ -477,6 +488,13 @@
   line-height: 1.55;
 }
 
+.admin-form-grid input:focus,
+.admin-form-grid textarea:focus,
+.admin-form-grid select:focus {
+  border-color: #8b9f96;
+  outline: 3px solid rgba(23, 63, 53, 0.1);
+}
+
 .admin-field-wide {
   grid-column: span 3;
 }
@@ -484,6 +502,45 @@
 .admin-form-intro {
   margin: 0 0 20px;
   color: #6f7974;
+  font-size: 13px;
+}
+
+.admin-location-picker {
+  margin-top: 22px;
+  overflow: hidden;
+  border: 1px solid #ccd1cc;
+  border-radius: 10px;
+  background: #eef1ed;
+}
+
+.admin-location-map {
+  height: 430px;
+  background: #d8e2e4;
+  cursor: crosshair;
+}
+
+.admin-coordinate-strip {
+  min-height: 48px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  color: #68736e;
+  background: #fff;
+  font-size: 12px;
+}
+
+.admin-coordinate-strip strong {
+  margin-left: 4px;
+  color: #173f35;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-location-error {
+  margin: 0;
+  padding: 12px 14px;
+  color: #7c3425;
+  background: #faeee9;
   font-size: 13px;
 }
 
@@ -649,7 +706,8 @@
   }
 
   .admin-form-grid-period,
-  .admin-form-grid-source {
+  .admin-form-grid-source,
+  .admin-form-grid-location {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -703,8 +761,19 @@
 
   .admin-form-grid-languages,
   .admin-form-grid-period,
-  .admin-form-grid-source {
+  .admin-form-grid-source,
+  .admin-form-grid-location {
     grid-template-columns: 1fr;
+  }
+
+  .admin-location-map {
+    height: 340px;
+  }
+
+  .admin-coordinate-strip {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .admin-field-wide {

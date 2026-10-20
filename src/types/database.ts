@@ -928,6 +928,35 @@ export type Database = {
         }
         Returns: string
       }
+      update_event_draft: {
+        Args: {
+          p_category: string
+          p_date_precision: string
+          p_description_kk: string
+          p_description_ru: string
+          p_end_year: number | null
+          p_latitude: number
+          p_location_kk: string
+          p_location_precision: string
+          p_location_ru: string
+          p_longitude: number
+          p_record_id: string
+          p_significance_kk: string
+          p_significance_ru: string
+          p_source_author: string
+          p_source_id: string
+          p_source_license: string
+          p_source_publisher: string
+          p_source_title: string
+          p_source_url: string
+          p_start_year: number
+          p_summary_kk: string
+          p_summary_ru: string
+          p_title_kk: string
+          p_title_ru: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
