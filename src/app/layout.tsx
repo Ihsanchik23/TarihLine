@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TarihLine — история на карте",
+  title: "TarihLine — история Казахстана и мира на карте",
   description:
-    "Интерактивная карта и временная шкала истории Казахстана XX века",
+    "Интерактивная карта, события и личности истории Казахстана и мира",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
