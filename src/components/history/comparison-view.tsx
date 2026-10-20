@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Map as MapLibreMap, Marker, NavigationControl } from "maplibre-gl";
 import type { HistoricalMapLayer, HistoryRecord, HistoryRelation, Language } from "@/lib/history-types";
-import { renderHistoricalLayers, tarihLineMapStyle } from "@/lib/map-style";
+import { collapseMapAttribution, renderHistoricalLayers, tarihLineMapStyle } from "@/lib/map-style";
 
 const comparisonCopy = {
   ru: {
@@ -23,7 +23,6 @@ const comparisonCopy = {
     place: "Место",
     significance: "Историческое значение",
     source: "Источник",
-    prototype: "Тестовый набор",
     duplicate: "Для сравнения выберите два разных события",
     mapUnavailable: "Карта недоступна",
   },
@@ -44,7 +43,6 @@ const comparisonCopy = {
     place: "Орын",
     significance: "Тарихи маңызы",
     source: "Дереккөз",
-    prototype: "Сынақ жинағы",
     duplicate: "Салыстыру үшін екі түрлі оқиғаны таңдаңыз",
     mapUnavailable: "Карта қолжетімсіз",
   },
@@ -73,6 +71,7 @@ function ComparisonMap({ record, language, mapLayers }: ComparisonMapProps) {
         zoom: 3.5,
         minZoom: 1,
         maxZoom: 7,
+        attributionControl: { compact: true },
       });
     } catch {
       queueMicrotask(() => setError(true));
@@ -92,10 +91,12 @@ function ComparisonMap({ record, language, mapLayers }: ComparisonMapProps) {
     map.on("load", () => {
       window.clearTimeout(fallbackTimer);
       setError(false);
+      collapseMapAttribution(map);
       renderHistoricalLayers(
         map,
         mapLayers.filter((layer) => layer.validFrom <= record.startYear && layer.validTo >= record.startYear),
         language,
+        record.startYear,
       );
     });
 
@@ -173,13 +174,12 @@ type Props = {
   relations: HistoryRelation[];
   mapLayers: HistoricalMapLayer[];
   language: Language;
-  prototype: boolean;
   initialLeftId: string | null;
   onLanguageChange: (language: Language) => void;
   onClose: () => void;
 };
 
-export function ComparisonView({ records, relations, mapLayers, language, prototype, initialLeftId, onLanguageChange, onClose }: Props) {
+export function ComparisonView({ records, relations, mapLayers, language, initialLeftId, onLanguageChange, onClose }: Props) {
   const events = useMemo(
     () => records.filter((record) => record.type === "event").sort((a, b) => a.startYear - b.startYear),
     [records],
@@ -228,7 +228,6 @@ export function ComparisonView({ records, relations, mapLayers, language, protot
           <p>{t.subtitle}</p>
         </div>
         <div className="comparison-actions">
-          {prototype && <span className="prototype-badge">{t.prototype}</span>}
           <div className="language-switch" aria-label="Тіл / Язык">
             <button className={language === "kk" ? "is-active" : ""} type="button" onClick={() => onLanguageChange("kk")}>ҚАЗ</button>
             <button className={language === "ru" ? "is-active" : ""} type="button" onClick={() => onLanguageChange("ru")}>РУС</button>

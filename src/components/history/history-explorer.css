@@ -108,18 +108,6 @@
   gap: 12px;
 }
 
-.prototype-badge {
-  padding: 7px 10px;
-  border: 1px solid #e4c887;
-  border-radius: 999px;
-  color: #755715;
-  background: #fff6dc;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
 .language-switch {
   display: flex;
   padding: 3px;
@@ -151,6 +139,10 @@
   display: grid;
   grid-template-columns: 328px minmax(0, 1fr);
   min-height: 0;
+}
+
+.map-workspace--map-only {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .records-panel {
@@ -424,26 +416,6 @@
   margin: 0;
   font-size: 12px;
   line-height: 1.5;
-}
-
-.prototype-note {
-  padding: 12px 18px 14px;
-  border-top: 1px solid #ead7a9;
-  background: #fff9e9;
-}
-
-.prototype-note strong {
-  color: #745711;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.prototype-note p {
-  margin: 5px 0 0;
-  color: #796b48;
-  font-size: 9px;
-  line-height: 1.45;
 }
 
 .map-stage {
@@ -1042,7 +1014,7 @@
 
 .year-ticks {
   display: grid;
-  grid-template-columns: repeat(15, 1fr);
+  grid-template-columns: repeat(11, 1fr);
 }
 
 .year-ticks button {
@@ -1073,30 +1045,6 @@
   width: 2px;
   height: 7px;
   background: var(--green);
-}
-
-.timeline-notice {
-  position: fixed;
-  right: 24px;
-  bottom: 178px;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  max-width: 390px;
-  padding: 12px 15px;
-  border: 1px solid #ead7a9;
-  border-radius: 9px;
-  color: #655530;
-  background: #fff9e9;
-  box-shadow: 0 12px 34px rgba(24, 33, 29, 0.16);
-  font-size: 11px;
-}
-
-.timeline-notice svg {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
 }
 
 .modal-backdrop {
@@ -1206,12 +1154,12 @@
     display: none;
   }
 
-  .prototype-badge {
-    display: none;
-  }
-
   .map-workspace {
     grid-template-columns: 290px minmax(0, 1fr);
+  }
+
+  .map-workspace--map-only {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .detail-card {
@@ -1303,14 +1251,10 @@
     display: none;
   }
 
-  .prototype-note {
-    display: none;
-  }
-
   .map-stage {
     order: 1;
-    height: 57dvh;
-    min-height: 430px;
+    height: calc(100dvh - 190px);
+    min-height: 500px;
   }
 
   .map-hint {
@@ -1393,13 +1337,6 @@
   .year-ticks button:nth-child(odd),
   .year-ticks button:last-child {
     font-size: 7px;
-  }
-
-  .timeline-notice {
-    right: 14px;
-    bottom: 142px;
-    left: 14px;
-    max-width: none;
   }
 
   .about-dialog {
@@ -1837,10 +1774,6 @@
   }
 
   .comparison-heading {
-    display: none;
-  }
-
-  .comparison-actions .prototype-badge {
     display: none;
   }
 

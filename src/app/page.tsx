@@ -4,5 +4,5 @@ import { getHistoryData } from "@/lib/history";
 export default async function Home() {
   const data = await getHistoryData();
 
-  return <HistoryExplorer records={data.records} relations={data.relations} mapLayers={data.mapLayers} prototype={data.prototype} />;
+  return <HistoryExplorer records={data.records} relations={data.relations} mapLayers={data.mapLayers} />;
 }

@@ -1,4 +1,3 @@
-import { prototypeRecords } from "@/data/prototype-records";
 import type { HistoricalMapLayer, HistoryRecord, HistoryRelation } from "@/lib/history-types";
 import type { Tables } from "@/types/database";
 import { createClient } from "./supabase/server";
@@ -18,7 +17,6 @@ export type HistoryData = {
   records: HistoryRecord[];
   relations: HistoryRelation[];
   mapLayers: HistoricalMapLayer[];
-  prototype: boolean;
 };
 
 function resolveGeojsonUrl(client: SupabaseServerClient, path: string) {
@@ -119,7 +117,7 @@ export async function getHistoryData(): Promise<HistoryData> {
       .order("published_at", { ascending: true });
 
     if (recordsResult.error || !recordsResult.data?.length) {
-      return { records: prototypeRecords, relations: [], mapLayers, prototype: true };
+      return { records: [], relations: [], mapLayers };
     }
 
     const records = recordsResult.data as HistoricalRecordRow[];
@@ -143,7 +141,7 @@ export async function getHistoryData(): Promise<HistoryData> {
     ]);
 
     if (eventsResult.error || peopleResult.error || markersResult.error || linksResult.error || relationsResult.error) {
-      return { records: prototypeRecords, relations: [], mapLayers, prototype: true };
+      return { records: [], relations: [], mapLayers };
     }
 
     const events = (eventsResult.data ?? []) as EventDetailRow[];
@@ -164,7 +162,7 @@ export async function getHistoryData(): Promise<HistoryData> {
     ]);
 
     if (locationsResult.error || sourcesResult.error) {
-      return { records: prototypeRecords, relations: [], mapLayers, prototype: true };
+      return { records: [], relations: [], mapLayers };
     }
 
     const locations = (locationsResult.data ?? []) as LocationRow[];
@@ -258,9 +256,9 @@ export async function getHistoryData(): Promise<HistoryData> {
       }));
 
     return mapped.length
-      ? { records: mapped, relations: mappedRelations, mapLayers, prototype: false }
-      : { records: prototypeRecords, relations: [], mapLayers, prototype: true };
+      ? { records: mapped, relations: mappedRelations, mapLayers }
+      : { records: [], relations: [], mapLayers };
   } catch {
-    return { records: prototypeRecords, relations: [], mapLayers: [], prototype: true };
+    return { records: [], relations: [], mapLayers: [] };
   }
 }

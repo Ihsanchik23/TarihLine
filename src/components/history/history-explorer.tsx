@@ -10,7 +10,7 @@ import {
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { HistoricalMapLayer, HistoryRecord, HistoryRelation, Language } from "@/lib/history-types";
-import { renderHistoricalLayers, tarihLineMapStyle } from "@/lib/map-style";
+import { collapseMapAttribution, renderHistoricalLayers, tarihLineMapStyle } from "@/lib/map-style";
 import { ComparisonView } from "./comparison-view";
 import "./history-explorer.css";
 
@@ -18,9 +18,9 @@ setWorkerUrl(
   new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString(),
 );
 
-const MIN_YEAR = 1949;
-const MAX_YEAR = 1963;
-const START_YEAR = 1961;
+const MIN_YEAR = 1900;
+const MAX_YEAR = 2000;
+const START_YEAR = 1950;
 
 const copy = {
   ru: {
@@ -32,25 +32,22 @@ const copy = {
     people: "Личности",
     records: "Объекты года",
     allEvents: "Показать все",
-    noRecords: "В прототипе нет объектов за этот год",
+    noRecords: "События и личности за этот год ещё не опубликованы",
     hiddenRecords: "Объекты скрыты настройками слоёв",
-    prototype: "Тестовый набор",
-    prototypeDetail: "Содержание используется для проверки интерфейса и будет заменено после редакторской проверки.",
     close: "Закрыть",
     previous: "Предыдущий год",
     next: "Следующий год",
     selectedYear: "Выбранный год",
     overview: "Обзорная шкала",
-    available: "Доступный период прототипа",
-    unavailable: "Исторические данные за этот период пока не добавлены в прототип",
+    available: "Период исторической карты",
     significance: "Историческое значение",
     sources: "Источники",
     location: "Место",
     biographyLocation: "Место связано с биографией; нахождение в выбранном году не установлено.",
     personPeriod: "Привязка относится к выбранному периоду.",
-    mapUnavailable: "Подложка карты недоступна. Список объектов и временная шкала продолжают работать.",
+    mapUnavailable: "Карта недоступна. Временная шкала продолжает работать.",
     aboutTitle: "История в общем контексте",
-    aboutText: "TarihLine помогает сопоставлять историю Казахстана и мира на одной карте и временной шкале. Текущий прототип охватывает 1949–1963 годы.",
+    aboutText: "TarihLine показывает изменение политических границ мира с 1900 по 2000 год. События и личности публикуются отдельно после редакторской проверки.",
     aboutNote: "Совпадение по времени не означает причинную связь. Подтверждённые отношения между событиями будут показаны отдельно.",
     data: "Данные",
     navigation: "Навигация",
@@ -69,25 +66,22 @@ const copy = {
     people: "Тұлғалар",
     records: "Жыл нысандары",
     allEvents: "Барлығын көрсету",
-    noRecords: "Бұл жыл бойынша прототипте нысандар жоқ",
+    noRecords: "Бұл жылға арналған оқиғалар мен тұлғалар әлі жарияланбаған",
     hiddenRecords: "Нысандар қабат баптауларымен жасырылған",
-    prototype: "Сынақ жинағы",
-    prototypeDetail: "Мазмұн интерфейсті тексеру үшін қолданылады және редакциялық тексерістен кейін ауыстырылады.",
     close: "Жабу",
     previous: "Алдыңғы жыл",
     next: "Келесі жыл",
     selectedYear: "Таңдалған жыл",
     overview: "Жалпы уақыт шкаласы",
-    available: "Прототиптің қолжетімді кезеңі",
-    unavailable: "Бұл кезең бойынша тарихи деректер прототипке әлі қосылған жоқ",
+    available: "Тарихи картаның кезеңі",
     significance: "Тарихи маңызы",
     sources: "Дереккөздер",
     location: "Орын",
     biographyLocation: "Орын өмірбаянмен байланысты; таңдалған жылы осы жерде болғаны анықталмаған.",
     personPeriod: "Байланыс таңдалған кезеңге қатысты.",
-    mapUnavailable: "Карта қабаты қолжетімсіз. Нысандар тізімі мен уақыт шкаласы жұмысын жалғастырады.",
+    mapUnavailable: "Карта қолжетімсіз. Уақыт шкаласы жұмысын жалғастырады.",
     aboutTitle: "Тарихты ортақ контексте көру",
-    aboutText: "TarihLine Қазақстан мен әлем тарихын бір картада және уақыт шкаласында салыстыруға көмектеседі. Қазіргі прототип 1949–1963 жылдарды қамтиды.",
+    aboutText: "TarihLine 1900 жылдан 2000 жылға дейінгі әлемнің саяси шекараларының өзгеруін көрсетеді. Оқиғалар мен тұлғалар редакциялық тексеруден кейін бөлек жарияланады.",
     aboutNote: "Уақыттың сәйкес келуі себеп-салдарлық байланысты білдірмейді. Расталған қатынастар бөлек көрсетіледі.",
     data: "Деректер",
     navigation: "Навигация",
@@ -133,10 +127,9 @@ type Props = {
   records: HistoryRecord[];
   relations: HistoryRelation[];
   mapLayers: HistoricalMapLayer[];
-  prototype: boolean;
 };
 
-export function HistoryExplorer({ records, relations, mapLayers, prototype }: Props) {
+export function HistoryExplorer({ records, relations, mapLayers }: Props) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
@@ -146,12 +139,12 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
   const [showPeople, setShowPeople] = useState(true);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
   const [showAbout, setShowAbout] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const initialSelected = records.find((record) => record.type === "event" && isVisibleInYear(record, START_YEAR));
   const [selectedId, setSelectedId] = useState<string | null>(initialSelected?.id ?? null);
   const t = copy[language];
+  const hasRecords = records.length > 0;
 
   const yearRecords = useMemo(
     () => records.filter((record) => isVisibleInYear(record, year)),
@@ -191,6 +184,7 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
         zoom: 2.1,
         minZoom: 1,
         maxZoom: 7,
+        attributionControl: { compact: true },
       });
     } catch {
       queueMicrotask(() => setMapError(true));
@@ -204,6 +198,7 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
     map.on("load", () => {
       window.clearTimeout(fallbackTimer);
       setMapError(false);
+      collapseMapAttribution(map);
     });
     mapRef.current = map;
     queueMicrotask(() => setMapReady(true));
@@ -219,14 +214,14 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
     const map = mapRef.current;
     if (!map || !mapReady) return;
 
-    const render = () => renderHistoricalLayers(map, activeMapLayers, language);
+    const render = () => renderHistoricalLayers(map, activeMapLayers, language, year);
     if (map.isStyleLoaded()) render();
     else map.once("load", render);
 
     return () => {
       map.off("load", render);
     };
-  }, [activeMapLayers, language, mapReady]);
+  }, [activeMapLayers, language, mapReady, year]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -304,12 +299,6 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
     const nextYear = Math.min(MAX_YEAR, Math.max(MIN_YEAR, value));
     setYear(nextYear);
     if (selected && !isVisibleInYear(selected, nextYear)) setSelectedId(null);
-    setNotice(null);
-  }
-
-  function showUnavailableNotice() {
-    setNotice(t.unavailable);
-    window.setTimeout(() => setNotice(null), 3600);
   }
 
   if (showComparison) {
@@ -319,7 +308,6 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
         relations={relations}
         mapLayers={mapLayers}
         language={language}
-        prototype={prototype}
         initialLeftId={selected?.type === "event" ? selected.id : null}
         onLanguageChange={setLanguage}
         onClose={() => setShowComparison(false)}
@@ -334,7 +322,7 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
           <span className="app-brand__mark">T</span>
           <div>
             <strong>TarihLine</strong>
-            <span>Қазақстан · 1949–1963</span>
+            <span>Қазақстан · 1900–2000</span>
           </div>
         </div>
         <nav aria-label={t.navigation}>
@@ -346,13 +334,14 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
             <Icon name="info" />
             {t.about}
           </button>
-          <button className="nav-button" type="button" onClick={() => setShowComparison(true)}>
-            <Icon name="compare" />
-            {t.compare}
-          </button>
+          {hasRecords && (
+            <button className="nav-button" type="button" onClick={() => setShowComparison(true)}>
+              <Icon name="compare" />
+              {t.compare}
+            </button>
+          )}
         </nav>
         <div className="header-actions">
-          {prototype && <span className="prototype-badge">{t.prototype}</span>}
           <div className="language-switch" aria-label="Тіл / Язык">
             <button className={language === "kk" ? "is-active" : ""} type="button" onClick={() => setLanguage("kk")}>ҚАЗ</button>
             <button className={language === "ru" ? "is-active" : ""} type="button" onClick={() => setLanguage("ru")}>РУС</button>
@@ -360,8 +349,8 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
         </div>
       </header>
 
-      <section className="map-workspace">
-        <aside className="records-panel">
+      <section className={hasRecords ? "map-workspace" : "map-workspace map-workspace--map-only"}>
+        {hasRecords && <aside className="records-panel">
           <div className="panel-section layers-section">
             <div className="panel-title">
               <Icon name="layers" />
@@ -425,13 +414,7 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
             </div>
           </div>
 
-          {prototype && (
-            <div className="prototype-note">
-              <strong>{t.prototype}</strong>
-              <p>{t.prototypeDetail}</p>
-            </div>
-          )}
-        </aside>
+        </aside>}
 
         <div className="map-stage">
           <div className="map-canvas" ref={mapContainerRef} />
@@ -500,15 +483,6 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
           <button type="button" aria-label={t.next} disabled={year === MAX_YEAR} onClick={() => changeYear(year + 1)}>+</button>
         </div>
         <div className="timeline-main">
-          <div className="overview-scale">
-            <button type="button" onClick={showUnavailableNotice}><span>1465</span></button>
-            <div className="overview-track">
-              <button type="button" className="locked-period" aria-label={t.unavailable} onClick={showUnavailableNotice} />
-              <span className="available-period" />
-              <button type="button" className="locked-period locked-period--end" aria-label={t.unavailable} onClick={showUnavailableNotice} />
-            </div>
-            <button type="button" onClick={showUnavailableNotice}><span>2026</span></button>
-          </div>
           <div className="working-scale">
             <div className="working-scale__labels"><span>{MIN_YEAR}</span><strong>{t.available}</strong><span>{MAX_YEAR}</span></div>
             <input
@@ -522,15 +496,13 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
               style={{ "--timeline-progress": `${((year - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * 100}%` } as React.CSSProperties}
             />
             <div className="year-ticks">
-              {Array.from({ length: MAX_YEAR - MIN_YEAR + 1 }, (_, index) => MIN_YEAR + index).map((tick) => (
-                <button className={tick === year ? "is-active" : ""} type="button" key={tick} onClick={() => changeYear(tick)}><span />{tick % 2 === 1 || tick === MAX_YEAR ? tick : ""}</button>
+              {Array.from({ length: 11 }, (_, index) => MIN_YEAR + index * 10).map((tick) => (
+                <button className={tick === year ? "is-active" : ""} type="button" key={tick} onClick={() => changeYear(tick)}><span />{tick}</button>
               ))}
             </div>
           </div>
         </div>
       </section>
-
-      {notice && <div className="timeline-notice" role="status"><Icon name="info" />{notice}</div>}
 
       {showAbout && (
         <div className="modal-backdrop" role="presentation" onMouseDown={() => setShowAbout(false)}>
@@ -540,7 +512,7 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
             <h2 id="about-title">{t.aboutTitle}</h2>
             <p>{t.aboutText}</p>
             <div className="about-rule"><Icon name="info"/><p>{t.aboutNote}</p></div>
-            <div className="about-meta"><span><strong>1949–1963</strong>{t.data}</span><span><strong>RU · ҚАЗ</strong>Тіл / Язык</span><span><strong>MapLibre</strong>Esri World Ocean</span></div>
+            <div className="about-meta"><span><strong>1900–2000</strong>{t.data}</span><span><strong>RU · ҚАЗ</strong>Тіл / Язык</span><span><strong>MapLibre</strong>Esri World Ocean</span></div>
           </section>
         </div>
       )}
