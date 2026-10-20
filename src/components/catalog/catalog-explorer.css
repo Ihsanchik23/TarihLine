@@ -391,6 +391,14 @@
   letter-spacing: -0.035em;
 }
 
+.catalog-card h2 a {
+  text-decoration: none;
+}
+
+.catalog-card h2 a:hover {
+  color: var(--green);
+}
+
 .catalog-card > p {
   margin: 0;
   color: #5d6863;
@@ -425,7 +433,13 @@
   font-weight: 700;
 }
 
-.catalog-card > a {
+.catalog-card__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.catalog-card__actions a {
   min-height: 44px;
   padding: 0 14px;
   display: flex;
@@ -439,11 +453,21 @@
   text-decoration: none;
 }
 
-.catalog-card > a:hover {
+.catalog-card__actions a:hover {
   background: var(--green-dark);
 }
 
-.catalog-card > a span {
+.catalog-card__actions a:last-child {
+  color: var(--green);
+  background: var(--green-soft);
+}
+
+.catalog-card__actions a:last-child:hover {
+  color: white;
+  background: var(--green);
+}
+
+.catalog-card__actions a span {
   font-size: 18px;
   font-weight: 400;
 }
