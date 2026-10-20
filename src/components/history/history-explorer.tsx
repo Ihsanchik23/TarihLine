@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
   LngLatBounds,
   Map as MapLibreMap,
@@ -25,6 +26,7 @@ const START_YEAR = 1950;
 const copy = {
   ru: {
     map: "Карта",
+    catalog: "Каталог",
     about: "О проекте",
     compare: "Сравнить",
     layers: "Слои карты",
@@ -59,6 +61,7 @@ const copy = {
   },
   kk: {
     map: "Карта",
+    catalog: "Каталог",
     about: "Жоба туралы",
     compare: "Салыстыру",
     layers: "Карта қабаттары",
@@ -127,21 +130,25 @@ type Props = {
   records: HistoryRecord[];
   relations: HistoryRelation[];
   mapLayers: HistoricalMapLayer[];
+  initialYear?: number;
+  initialRecordId?: string;
 };
 
-export function HistoryExplorer({ records, relations, mapLayers }: Props) {
+export function HistoryExplorer({ records, relations, mapLayers, initialYear, initialRecordId }: Props) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
   const [language, setLanguage] = useState<Language>("ru");
-  const [year, setYear] = useState(START_YEAR);
+  const startingYear = initialYear ?? START_YEAR;
+  const [year, setYear] = useState(startingYear);
   const [showEvents, setShowEvents] = useState(true);
   const [showPeople, setShowPeople] = useState(true);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
-  const initialSelected = records.find((record) => record.type === "event" && isVisibleInYear(record, START_YEAR));
+  const initialSelected = records.find((record) => record.id === initialRecordId && isVisibleInYear(record, startingYear))
+    ?? records.find((record) => record.type === "event" && isVisibleInYear(record, startingYear));
   const [selectedId, setSelectedId] = useState<string | null>(initialSelected?.id ?? null);
   const t = copy[language];
   const hasRecords = records.length > 0;
@@ -326,10 +333,13 @@ export function HistoryExplorer({ records, relations, mapLayers }: Props) {
           </div>
         </div>
         <nav aria-label={t.navigation}>
-          <button className="nav-button is-active" type="button">
+          <Link className="nav-button is-active" href="/">
             <span className="nav-button__dot" />
             {t.map}
-          </button>
+          </Link>
+          <Link className="nav-button" href="/catalog">
+            {t.catalog}
+          </Link>
           <button className="nav-button" type="button" onClick={() => setShowAbout(true)}>
             <Icon name="info" />
             {t.about}
@@ -342,6 +352,7 @@ export function HistoryExplorer({ records, relations, mapLayers }: Props) {
           )}
         </nav>
         <div className="header-actions">
+          <Link className="mobile-catalog-link" href="/catalog">{t.catalog}</Link>
           <div className="language-switch" aria-label="Тіл / Язык">
             <button className={language === "kk" ? "is-active" : ""} type="button" onClick={() => setLanguage("kk")}>ҚАЗ</button>
             <button className={language === "ru" ? "is-active" : ""} type="button" onClick={() => setLanguage("ru")}>РУС</button>
