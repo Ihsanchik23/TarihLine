@@ -1,0 +1,53 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { PersonForm, type PersonFormValues } from "@/components/admin/person-form";
+import { PersonWorkflow } from "@/components/admin/person-workflow";
+import { getHistoricalMapLayers } from "@/lib/history";
+import { createClient } from "@/lib/supabase/server";
+
+type EditPersonPageProps = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ saved?: string; status?: string }>;
+};
+
+export default async function EditPersonPage({ params, searchParams }: EditPersonPageProps) {
+  const { id } = await params;
+  const { saved, status } = await searchParams;
+  const supabase = await createClient();
+  const [recordResult, detailResult, sourceLinkResult, markerResult, mapLayers] = await Promise.all([
+    supabase.from("historical_records").select("*").eq("id", id).eq("record_type", "person").maybeSingle(),
+    supabase.from("person_details").select("*").eq("record_id", id).maybeSingle(),
+    supabase.from("record_sources").select("source_id").eq("record_id", id).limit(1).maybeSingle(),
+    supabase.from("map_markers").select("*").eq("record_id", id).eq("is_primary", true).neq("status", "archived").order("created_at").limit(1).maybeSingle(),
+    getHistoricalMapLayers(),
+  ]);
+  const record = recordResult.data;
+  const detail = detailResult.data;
+  const sourceLink = sourceLinkResult.data;
+  const marker = markerResult.data;
+  if (!record || !detail || !sourceLink) notFound();
+  const sourceResult = await supabase.from("sources").select("*").eq("id", sourceLink.source_id).maybeSingle();
+  const source = sourceResult.data;
+  if (!source) notFound();
+  const editable = record.status === "draft";
+  const readyForReview = Boolean(marker && typeof marker.longitude === "number" && typeof marker.latitude === "number" && marker.title_ru?.trim() && marker.title_kk?.trim() && source.url?.match(/^https?:\/\//) && source.license?.trim());
+  const initialValues: PersonFormValues = {
+    recordId: record.id, sourceId: source.id, titleRu: record.title_ru, titleKk: record.title_kk,
+    summaryRu: record.summary_ru, summaryKk: record.summary_kk, biographyRu: detail.biography_ru,
+    biographyKk: detail.biography_kk, occupationRu: detail.occupation_ru, occupationKk: detail.occupation_kk,
+    category: record.category, birthYear: detail.birth_year, deathYear: detail.death_year,
+    sourceTitle: source.title, sourceUrl: source.url ?? "", sourceAuthor: source.author ?? "",
+    sourcePublisher: source.publisher ?? "", sourceLicense: source.license ?? "", locationRu: marker?.title_ru ?? "",
+    locationKk: marker?.title_kk ?? "", locationPrecision: marker?.precision === "approximate" ? "approximate" : "point",
+    longitude: marker?.longitude ?? null, latitude: marker?.latitude ?? null,
+  };
+  return <div className="admin-dashboard admin-editor-page">
+    <header className="admin-page-header"><div><span className="admin-kicker">Историческая личность</span><h1>{editable ? "Редактирование" : "Проверка материала"}</h1><p>{editable ? "Исправьте биографию, источник и укажите основное место на карте." : "Для изменения материала сначала верните его в черновик."}</p></div><Link className="admin-map-link" href="/admin/people">К списку</Link></header>
+    {saved === "1" ? <div className="admin-success" role="status">Изменения и точка на карте сохранены</div> : null}
+    {status === "verified" ? <div className="admin-success" role="status">Личность прошла редакторскую проверку</div> : null}
+    {status === "published" ? <div className="admin-success" role="status">Личность опубликована и появилась на карте</div> : null}
+    {status === "draft" ? <div className="admin-success" role="status">Личность возвращена в черновик</div> : null}
+    <PersonWorkflow recordId={record.id} status={record.status} readyForReview={readyForReview} />
+    <PersonForm initialValues={initialValues} mapLayers={mapLayers} editable={editable} />
+  </div>;
+}

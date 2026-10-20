@@ -957,6 +957,13 @@ export type Database = {
         }
         Returns: string
       }
+      set_person_status: {
+        Args: {
+          p_record_id: string
+          p_target_status: string
+        }
+        Returns: string
+      }
       update_event_draft: {
         Args: {
           p_category: string
@@ -979,6 +986,34 @@ export type Database = {
           p_source_title: string
           p_source_url: string
           p_start_year: number
+          p_summary_kk: string
+          p_summary_ru: string
+          p_title_kk: string
+          p_title_ru: string
+        }
+        Returns: string
+      }
+      update_person_draft: {
+        Args: {
+          p_biography_kk: string
+          p_biography_ru: string
+          p_birth_year: number
+          p_category: string
+          p_death_year: number | null
+          p_latitude: number
+          p_location_kk: string
+          p_location_precision: string
+          p_location_ru: string
+          p_longitude: number
+          p_occupation_kk: string
+          p_occupation_ru: string
+          p_record_id: string
+          p_source_author: string
+          p_source_id: string
+          p_source_license: string
+          p_source_publisher: string
+          p_source_title: string
+          p_source_url: string
           p_summary_kk: string
           p_summary_ru: string
           p_title_kk: string
