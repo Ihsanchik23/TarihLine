@@ -68,10 +68,10 @@ export default async function AdminDashboardPage() {
       </section>
 
       <section className="admin-next-section">
-        <span className="admin-kicker">Следующий модуль</span>
-        <h2>Редактор исторических материалов</h2>
-        <p>Формы событий и личностей будут сохранять двуязычные черновики, координаты и проверенные источники.</p>
-        <Link className="admin-primary-link" href="/admin/events">Перейти к событиям</Link>
+        <span className="admin-kicker">Библиография</span>
+        <h2>Управление источниками</h2>
+        <p>Проверяйте ссылки, лицензии и использование одного источника в разных исторических материалах.</p>
+        <Link className="admin-primary-link" href="/admin/sources">Открыть источники</Link>
       </section>
     </div>
   );

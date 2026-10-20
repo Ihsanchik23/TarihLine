@@ -7,6 +7,7 @@ const links = [
   { href: "/admin", label: "Обзор", number: "01" },
   { href: "/admin/events", label: "События", number: "02" },
   { href: "/admin/people", label: "Личности", number: "03" },
+  { href: "/admin/sources", label: "Источники", number: "04" },
 ];
 
 export function AdminNav() {
@@ -30,10 +31,6 @@ export function AdminNav() {
           </Link>
         );
       })}
-      <span className="admin-nav-link admin-nav-link-muted">
-        <span>Источники</span>
-        <span>04</span>
-      </span>
     </nav>
   );
 }

@@ -757,6 +757,144 @@
   font-size: 13px;
 }
 
+.admin-source-row .admin-record-period::after {
+  content: " связей";
+  display: block;
+  color: #7b847f;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-source-usage {
+  margin-top: 34px;
+}
+
+.admin-source-usage-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-source-usage-grid > a,
+.admin-source-usage-grid > div {
+  padding: 16px 18px;
+  display: grid;
+  gap: 6px;
+  border: 1px solid #d7d9d3;
+  border-radius: 9px;
+  color: inherit;
+  background: #fffdf8;
+  text-decoration: none;
+}
+
+.admin-source-usage-grid > a:hover {
+  border-color: #9cac9f;
+}
+
+.admin-source-usage-grid strong {
+  color: #173f35;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.admin-source-usage-grid span {
+  color: #76807b;
+  font-size: 12px;
+}
+
+.admin-source-action-card,
+.admin-source-danger {
+  margin-top: 24px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
+  align-items: center;
+  gap: 24px;
+  border: 1px solid #d7d9d3;
+  border-radius: 12px;
+  background: #fffdf8;
+}
+
+.admin-source-action-card h2,
+.admin-source-danger h2 {
+  margin: 8px 0 6px;
+  color: #173f35;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.admin-source-action-card p,
+.admin-source-danger p {
+  margin: 0;
+  color: #6f7974;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.admin-source-link-form {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-source-link-form select {
+  min-width: 0;
+  height: 44px;
+  padding: 0 12px;
+  flex: 1;
+  border: 1px solid #ccd1cc;
+  border-radius: 8px;
+  color: #18211d;
+  background: #fff;
+}
+
+.admin-source-link-form button,
+.admin-source-danger button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  color: #fffdf8;
+  background: #173f35;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-source-link-form button:disabled,
+.admin-source-danger button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.admin-source-action-card > .admin-alert,
+.admin-source-danger > .admin-alert {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+
+.admin-source-danger {
+  border-color: #dfc8c1;
+  background: #fbf5f2;
+}
+
+.admin-source-danger form {
+  justify-self: end;
+}
+
+.admin-source-danger button {
+  color: #7c3425;
+  border: 1px solid #c99283;
+  background: transparent;
+}
+
+.admin-source-empty-note {
+  justify-self: end;
+}
+
 @media (max-width: 900px) {
   .admin-shell {
     grid-template-columns: 1fr;
@@ -815,6 +953,16 @@
     justify-content: flex-start;
   }
 
+  .admin-source-action-card,
+  .admin-source-danger {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-source-danger form,
+  .admin-source-empty-note {
+    justify-self: start;
+  }
+
   .admin-form-grid-period,
   .admin-form-grid-source,
   .admin-form-grid-location {
@@ -862,6 +1010,15 @@
 
   .admin-record-meta {
     justify-content: space-between;
+  }
+
+  .admin-source-usage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-source-link-form {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .admin-empty-state,
