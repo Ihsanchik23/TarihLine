@@ -1,47 +1,42 @@
-import type { FeatureCollection } from "geojson";
-import type { GeometryCollection, Topology } from "topojson-specification";
-import { feature } from "topojson-client";
 import type { Map as MapLibreMap, StyleSpecification } from "maplibre-gl";
-import landTopology from "world-atlas/land-110m.json";
 import type { HistoricalMapLayer, Language } from "@/lib/history-types";
-
-const land = feature(
-  landTopology as unknown as Topology,
-  landTopology.objects.land as unknown as GeometryCollection,
-) as FeatureCollection;
 
 const colors = ["#d4a85f", "#6f9f87", "#bf765e", "#8195b2", "#aa8f69", "#7d9e9b"];
 const sourcePrefix = "tarihline-history-source-";
 const fillPrefix = "tarihline-history-fill-";
 const linePrefix = "tarihline-history-line-";
+const oceanTiles = "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}";
 
 export const tarihLineMapStyle: StyleSpecification = {
   version: 8,
   name: "TarihLine",
   sources: {
-    "tarihline-land": {
-      type: "geojson",
-      data: land,
-      attribution: "Natural Earth",
+    "tarihline-base-map": {
+      type: "raster",
+      tiles: [oceanTiles],
+      tileSize: 256,
+      minzoom: 0,
+      maxzoom: 16,
+      attribution: "Esri, Garmin, GEBCO, NOAA NGDC, and other contributors",
     },
   },
   layers: [
     {
       id: "tarihline-ocean",
       type: "background",
-      paint: { "background-color": "#cfded9" },
+      paint: { "background-color": "#d8e2e4" },
     },
     {
-      id: "tarihline-land-fill",
-      type: "fill",
-      source: "tarihline-land",
-      paint: { "fill-color": "#f0e8d8", "fill-opacity": 1 },
-    },
-    {
-      id: "tarihline-coastline",
-      type: "line",
-      source: "tarihline-land",
-      paint: { "line-color": "#9aa89f", "line-width": 1.1, "line-opacity": 0.9 },
+      id: "tarihline-base-map",
+      type: "raster",
+      source: "tarihline-base-map",
+      paint: {
+        "raster-opacity": 0.72,
+        "raster-saturation": -0.62,
+        "raster-contrast": -0.08,
+        "raster-brightness-min": 0.2,
+        "raster-brightness-max": 0.96,
+      },
     },
   ],
 };

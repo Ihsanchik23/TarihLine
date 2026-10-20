@@ -63,14 +63,21 @@ function ComparisonMap({ record, language, mapLayers }: ComparisonMapProps) {
   useEffect(() => {
     if (!containerRef.current || !record.coordinates) return;
 
-    const map = new MapLibreMap({
-      container: containerRef.current,
-      style: tarihLineMapStyle,
-      center: record.coordinates,
-      zoom: 3.5,
-      minZoom: 1,
-      maxZoom: 7,
-    });
+    let map: MapLibreMap;
+
+    try {
+      map = new MapLibreMap({
+        container: containerRef.current,
+        style: tarihLineMapStyle,
+        center: record.coordinates,
+        zoom: 3.5,
+        minZoom: 1,
+        maxZoom: 7,
+      });
+    } catch {
+      queueMicrotask(() => setError(true));
+      return;
+    }
     map.addControl(new NavigationControl({ showCompass: false }), "bottom-right");
 
     const element = document.createElement("div");

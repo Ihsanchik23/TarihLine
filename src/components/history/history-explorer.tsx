@@ -55,7 +55,7 @@ const copy = {
     data: "Данные",
     navigation: "Навигация",
     zoomHint: "Перетаскивайте карту и используйте колёсико или кнопки масштаба.",
-    ownMap: "Карта TarihLine",
+    ownMap: "Базовая карта",
     historicalBorders: "Исторические границы",
     bordersPending: "Проверенные границы для этого года ещё не опубликованы",
     reconstruction: "Реконструкция",
@@ -92,7 +92,7 @@ const copy = {
     data: "Деректер",
     navigation: "Навигация",
     zoomHint: "Картаны жылжытып, масштаб үшін дөңгелекті немесе батырмаларды пайдаланыңыз.",
-    ownMap: "TarihLine картасы",
+    ownMap: "Негізгі карта",
     historicalBorders: "Тарихи шекаралар",
     bordersPending: "Бұл жылға арналған тексерілген шекаралар әлі жарияланбаған",
     reconstruction: "Реконструкция",
@@ -181,14 +181,21 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    const map = new MapLibreMap({
-      container: mapContainerRef.current,
-      style: tarihLineMapStyle,
-      center: [61, 39],
-      zoom: 2.1,
-      minZoom: 1,
-      maxZoom: 7,
-    });
+    let map: MapLibreMap;
+
+    try {
+      map = new MapLibreMap({
+        container: mapContainerRef.current,
+        style: tarihLineMapStyle,
+        center: [61, 39],
+        zoom: 2.1,
+        minZoom: 1,
+        maxZoom: 7,
+      });
+    } catch {
+      queueMicrotask(() => setMapError(true));
+      return;
+    }
 
     map.addControl(new NavigationControl({ showCompass: false }), "bottom-right");
     const fallbackTimer = window.setTimeout(() => {
@@ -533,7 +540,7 @@ export function HistoryExplorer({ records, relations, mapLayers, prototype }: Pr
             <h2 id="about-title">{t.aboutTitle}</h2>
             <p>{t.aboutText}</p>
             <div className="about-rule"><Icon name="info"/><p>{t.aboutNote}</p></div>
-            <div className="about-meta"><span><strong>1949–1963</strong>{t.data}</span><span><strong>RU · ҚАЗ</strong>Тіл / Язык</span><span><strong>MapLibre</strong>Natural Earth</span></div>
+            <div className="about-meta"><span><strong>1949–1963</strong>{t.data}</span><span><strong>RU · ҚАЗ</strong>Тіл / Язык</span><span><strong>MapLibre</strong>Esri World Ocean</span></div>
           </section>
         </div>
       )}
