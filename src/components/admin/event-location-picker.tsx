@@ -11,6 +11,7 @@ setWorkerUrl(
 );
 
 type EventLocationPickerProps = {
+  disabled?: boolean;
   initialLongitude: number | null;
   initialLatitude: number | null;
   mapLayers: HistoricalMapLayer[];
@@ -22,6 +23,7 @@ function coordinate(value: number | null) {
 }
 
 export function EventLocationPicker({
+  disabled = false,
   initialLongitude,
   initialLatitude,
   mapLayers,
@@ -49,6 +51,7 @@ export function EventLocationPicker({
         zoom: hasInitialPoint ? 4.5 : 2.1,
         minZoom: 1,
         maxZoom: 10,
+        interactive: !disabled,
         attributionControl: { compact: true },
       });
     } catch {
@@ -63,6 +66,7 @@ export function EventLocationPicker({
       collapseMapAttribution(map);
     });
     map.on("click", ({ lngLat }) => {
+      if (disabled) return;
       setLongitude(lngLat.lng);
       setLatitude(lngLat.lat);
     });
@@ -74,7 +78,7 @@ export function EventLocationPicker({
       map.remove();
       mapRef.current = null;
     };
-  }, [initialLatitude, initialLongitude]);
+  }, [disabled, initialLatitude, initialLongitude]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -87,7 +91,7 @@ export function EventLocationPicker({
     if (!map || longitude === null || latitude === null) return;
 
     if (!markerRef.current) {
-      const marker = new Marker({ color: "#a36f1d", draggable: true })
+      const marker = new Marker({ color: "#a36f1d", draggable: !disabled })
         .setLngLat([longitude, latitude])
         .addTo(map);
       marker.on("dragend", () => {
@@ -99,10 +103,10 @@ export function EventLocationPicker({
     } else {
       markerRef.current.setLngLat([longitude, latitude]);
     }
-  }, [latitude, longitude]);
+  }, [disabled, latitude, longitude]);
 
   return (
-    <div className="admin-location-picker">
+    <div className={`admin-location-picker${disabled ? " admin-location-picker-disabled" : ""}`}>
       <div className="admin-location-map" ref={containerRef} />
       {mapError ? <p className="admin-location-error">Карта не загрузилась. Проверьте подключение и повторите попытку.</p> : null}
       <div className="admin-coordinate-strip" aria-live="polite">

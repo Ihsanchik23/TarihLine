@@ -1,20 +1,21 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EventForm, type EventFormValues } from "@/components/admin/event-form";
+import { EventWorkflow } from "@/components/admin/event-workflow";
 import { getHistoricalMapLayers } from "@/lib/history";
 import { createClient } from "@/lib/supabase/server";
 
 type EditEventPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; status?: string }>;
 };
 
 export default async function EditEventPage({ params, searchParams }: EditEventPageProps) {
   const { id } = await params;
-  const { saved } = await searchParams;
+  const { saved, status } = await searchParams;
   const supabase = await createClient();
   const [recordResult, detailResult, sourceLinkResult, markerResult, mapLayers] = await Promise.all([
-    supabase.from("historical_records").select("*").eq("id", id).eq("record_type", "event").eq("status", "draft").maybeSingle(),
+    supabase.from("historical_records").select("*").eq("id", id).eq("record_type", "event").maybeSingle(),
     supabase.from("event_details").select("*").eq("record_id", id).maybeSingle(),
     supabase.from("record_sources").select("source_id").eq("record_id", id).limit(1).maybeSingle(),
     supabase.from("map_markers").select("*").eq("record_id", id).eq("is_primary", true).neq("status", "archived").order("created_at").limit(1).maybeSingle(),
@@ -31,6 +32,17 @@ export default async function EditEventPage({ params, searchParams }: EditEventP
   const sourceResult = await supabase.from("sources").select("*").eq("id", sourceLink.source_id).maybeSingle();
   const source = sourceResult.data;
   if (!source) notFound();
+
+  const editable = record.status === "draft";
+  const readyForReview = Boolean(
+    marker
+    && typeof marker.longitude === "number"
+    && typeof marker.latitude === "number"
+    && marker.title_ru?.trim()
+    && marker.title_kk?.trim()
+    && source.url?.match(/^https?:\/\//)
+    && source.license?.trim(),
+  );
 
   const initialValues: EventFormValues = {
     recordId: record.id,
@@ -63,14 +75,18 @@ export default async function EditEventPage({ params, searchParams }: EditEventP
     <div className="admin-dashboard admin-editor-page">
       <header className="admin-page-header">
         <div>
-          <span className="admin-kicker">Черновик события</span>
-          <h1>Редактирование</h1>
-          <p>Исправьте содержание, источник и укажите основное место события.</p>
+          <span className="admin-kicker">Историческое событие</span>
+          <h1>{editable ? "Редактирование" : "Проверка материала"}</h1>
+          <p>{editable ? "Исправьте содержание, источник и укажите основное место события." : "Для изменения материала сначала верните его в черновик."}</p>
         </div>
         <Link className="admin-map-link" href="/admin/events">К списку</Link>
       </header>
       {saved === "1" ? <div className="admin-success" role="status">Изменения и точка на карте сохранены</div> : null}
-      <EventForm initialValues={initialValues} mapLayers={mapLayers} />
+      {status === "verified" ? <div className="admin-success" role="status">Событие прошло редакторскую проверку</div> : null}
+      {status === "published" ? <div className="admin-success" role="status">Событие опубликовано и появилось на карте</div> : null}
+      {status === "draft" ? <div className="admin-success" role="status">Событие возвращено в черновик</div> : null}
+      <EventWorkflow recordId={record.id} status={record.status} readyForReview={readyForReview} />
+      <EventForm initialValues={initialValues} mapLayers={mapLayers} editable={editable} />
     </div>
   );
 }

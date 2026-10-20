@@ -41,16 +41,17 @@ export type EventFormValues = {
 type EventFormProps = {
   initialValues?: EventFormValues;
   mapLayers?: HistoricalMapLayer[];
+  editable?: boolean;
 };
 
-export function EventForm({ initialValues, mapLayers = [] }: EventFormProps) {
+export function EventForm({ initialValues, mapLayers = [], editable = true }: EventFormProps) {
   const editing = Boolean(initialValues);
   const action = editing ? updateEventDraft : createEventDraft;
   const [state, formAction, pending] = useActionState(action, initialState);
   const [startYear, setStartYear] = useState(initialValues?.startYear ?? 1950);
 
   return (
-    <form className="admin-editor-form" action={formAction}>
+    <form className={`admin-editor-form${editable ? "" : " admin-editor-form-locked"}`} action={editable ? formAction : undefined}>
       {initialValues ? (
         <>
           <input name="record_id" type="hidden" value={initialValues.recordId} />
@@ -59,7 +60,7 @@ export function EventForm({ initialValues, mapLayers = [] }: EventFormProps) {
       ) : null}
       {state.error ? <div className="admin-alert" role="alert">{state.error}</div> : null}
 
-      <fieldset className="admin-form-section">
+      <fieldset className="admin-form-section" disabled={!editable}>
         <legend><span>01</span> Основные данные</legend>
         <div className="admin-form-grid admin-form-grid-languages">
           <label>
@@ -89,7 +90,7 @@ export function EventForm({ initialValues, mapLayers = [] }: EventFormProps) {
         </div>
       </fieldset>
 
-      <fieldset className="admin-form-section">
+      <fieldset className="admin-form-section" disabled={!editable}>
         <legend><span>02</span> Период и значение</legend>
         <div className="admin-form-grid admin-form-grid-period">
           <label>
@@ -140,7 +141,7 @@ export function EventForm({ initialValues, mapLayers = [] }: EventFormProps) {
         </div>
       </fieldset>
 
-      <fieldset className="admin-form-section">
+      <fieldset className="admin-form-section" disabled={!editable}>
         <legend><span>03</span> Источник</legend>
         <p className="admin-form-intro">Каждое событие должно опираться на проверяемый источник.</p>
         <div className="admin-form-grid admin-form-grid-source">
@@ -168,7 +169,7 @@ export function EventForm({ initialValues, mapLayers = [] }: EventFormProps) {
       </fieldset>
 
       {initialValues ? (
-        <fieldset className="admin-form-section">
+        <fieldset className="admin-form-section" disabled={!editable}>
           <legend><span>04</span> Место на карте</legend>
           <p className="admin-form-intro">Нажмите на карту или перетащите маркер. Исторические границы соответствуют году начала события.</p>
           <div className="admin-form-grid admin-form-grid-location">
@@ -193,14 +194,17 @@ export function EventForm({ initialValues, mapLayers = [] }: EventFormProps) {
             initialLatitude={initialValues.latitude}
             mapLayers={mapLayers}
             year={startYear}
+            disabled={!editable}
           />
         </fieldset>
       ) : null}
 
-      <div className="admin-form-footer">
-        <p>{editing ? "Изменения останутся в черновике и не появятся на публичной карте." : "Событие сохранится как черновик. Место на карте задаётся на следующем шаге."}</p>
-        <button type="submit" disabled={pending}>{pending ? "Сохранение…" : editing ? "Сохранить изменения" : "Сохранить черновик"}</button>
-      </div>
+      {editable ? (
+        <div className="admin-form-footer">
+          <p>{editing ? "Изменения останутся в черновике и не появятся на публичной карте." : "Событие сохранится как черновик. Место на карте задаётся на следующем шаге."}</p>
+          <button type="submit" disabled={pending}>{pending ? "Сохранение…" : editing ? "Сохранить изменения" : "Сохранить черновик"}</button>
+        </div>
+      ) : null}
     </form>
   );
 }

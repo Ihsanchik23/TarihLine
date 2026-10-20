@@ -9,6 +9,10 @@ export type EventFormState = {
   error: string | null;
 };
 
+export type EventWorkflowState = {
+  error: string | null;
+};
+
 type EventFields = {
   titleRu: string;
   titleKk: string;
@@ -235,4 +239,39 @@ export async function updateEventDraft(
   revalidatePath("/admin/events");
   revalidatePath(`/admin/events/${recordId}`);
   redirect(`/admin/events/${recordId}?saved=1`);
+}
+
+export async function changeEventStatus(
+  _state: EventWorkflowState,
+  formData: FormData,
+): Promise<EventWorkflowState> {
+  await requireAdmin();
+  const recordId = field(formData, "record_id");
+  const targetStatus = field(formData, "target_status");
+
+  if (!recordId || !["draft", "verified", "published"].includes(targetStatus)) {
+    return { error: "Не удалось определить действие для события" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_event_status", {
+    p_record_id: recordId,
+    p_target_status: targetStatus,
+  });
+
+  if (error) {
+    if (error.code === "23514") {
+      return { error: "Для проверки и публикации заполните источник, период и основную точку на карте" };
+    }
+    if (error.code === "22023") {
+      return { error: "Этот переход между статусами недоступен" };
+    }
+    return { error: "Не удалось изменить статус события" };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/admin/events");
+  revalidatePath(`/admin/events/${recordId}`);
+  redirect(`/admin/events/${recordId}?status=${targetStatus}`);
 }

@@ -411,6 +411,100 @@
   margin-top: 0;
 }
 
+.admin-editor-form-locked .admin-form-section {
+  background: #f7f5ef;
+}
+
+.admin-editor-form-locked input,
+.admin-editor-form-locked textarea,
+.admin-editor-form-locked select {
+  color: #58635e;
+  background: #efeee9;
+}
+
+.admin-workflow {
+  margin-top: 28px;
+  padding: 22px 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 22px;
+  border: 1px solid #d7d9d3;
+  border-left: 4px solid #a36f1d;
+  border-radius: 10px;
+  background: #fffdf8;
+}
+
+.admin-workflow-verified {
+  border-left-color: #d19b34;
+}
+
+.admin-workflow-published {
+  border-left-color: #2e765f;
+}
+
+.admin-workflow-copy {
+  display: grid;
+  gap: 5px;
+}
+
+.admin-workflow-copy > span {
+  color: #7b847f;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.admin-workflow-copy strong {
+  color: #173f35;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.admin-workflow-copy p {
+  margin: 0;
+  color: #6f7974;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.admin-workflow-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-workflow-actions button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #173f35;
+  border-radius: 8px;
+  color: #fffdf8;
+  background: #173f35;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-workflow-actions .admin-workflow-secondary {
+  color: #173f35;
+  background: transparent;
+}
+
+.admin-workflow-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.admin-workflow-error {
+  grid-column: 1 / -1;
+  padding: 11px 13px;
+  border-radius: 7px;
+  color: #7c3425;
+  background: #faeee9;
+  font-size: 13px;
+}
+
 .admin-form-section {
   margin: 0;
   padding: 28px;
@@ -511,6 +605,14 @@
   border: 1px solid #ccd1cc;
   border-radius: 10px;
   background: #eef1ed;
+}
+
+.admin-location-picker-disabled {
+  opacity: 0.82;
+}
+
+.admin-location-picker-disabled .admin-location-map {
+  cursor: default;
 }
 
 .admin-location-map {
@@ -705,6 +807,14 @@
     flex-direction: column;
   }
 
+  .admin-workflow {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-workflow-actions {
+    justify-content: flex-start;
+  }
+
   .admin-form-grid-period,
   .admin-form-grid-source,
   .admin-form-grid-location {
@@ -781,6 +891,11 @@
   }
 
   .admin-form-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-workflow-actions {
     align-items: stretch;
     flex-direction: column;
   }

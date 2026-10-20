@@ -928,6 +928,13 @@ export type Database = {
         }
         Returns: string
       }
+      set_event_status: {
+        Args: {
+          p_record_id: string
+          p_target_status: string
+        }
+        Returns: string
+      }
       update_event_draft: {
         Args: {
           p_category: string
