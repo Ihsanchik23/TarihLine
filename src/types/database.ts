@@ -905,6 +905,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_person_draft: {
+        Args: {
+          p_biography_kk: string
+          p_biography_ru: string
+          p_birth_year: number
+          p_category: string
+          p_death_year: number | null
+          p_occupation_kk: string
+          p_occupation_ru: string
+          p_slug: string
+          p_source_author: string
+          p_source_license: string
+          p_source_publisher: string
+          p_source_title: string
+          p_source_url: string
+          p_summary_kk: string
+          p_summary_ru: string
+          p_title_kk: string
+          p_title_ru: string
+        }
+        Returns: string
+      }
       create_event_draft: {
         Args: {
           p_category: string

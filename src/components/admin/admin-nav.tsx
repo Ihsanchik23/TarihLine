@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const links = [
   { href: "/admin", label: "Обзор", number: "01" },
   { href: "/admin/events", label: "События", number: "02" },
+  { href: "/admin/people", label: "Личности", number: "03" },
 ];
 
 export function AdminNav() {
@@ -29,10 +30,6 @@ export function AdminNav() {
           </Link>
         );
       })}
-      <span className="admin-nav-link admin-nav-link-muted">
-        <span>Личности</span>
-        <span>03</span>
-      </span>
       <span className="admin-nav-link admin-nav-link-muted">
         <span>Источники</span>
         <span>04</span>
