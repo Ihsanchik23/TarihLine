@@ -28,3 +28,13 @@ export type HistoryRecord = {
   locationKind: "period" | "biographical" | "event";
   sources: HistorySource[];
 };
+
+export type HistoryRelation = {
+  id: string;
+  fromRecordId: string;
+  toRecordId: string;
+  type: string;
+  explanation: LocalizedText;
+  fromYear: number | null;
+  toYear: number | null;
+};

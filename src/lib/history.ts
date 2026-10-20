@@ -1,5 +1,5 @@
 import { prototypeRecords } from "@/data/prototype-records";
-import type { HistoryRecord } from "@/lib/history-types";
+import type { HistoryRecord, HistoryRelation } from "@/lib/history-types";
 import type { Tables } from "@/types/database";
 import { createClient } from "./supabase/server";
 
@@ -10,9 +10,11 @@ type MarkerRow = Tables<"map_markers">;
 type LocationRow = Tables<"locations">;
 type RecordSourceRow = Tables<"record_sources">;
 type SourceRow = Tables<"sources">;
+type RelationRow = Tables<"relations">;
 
 export type HistoryData = {
   records: HistoryRecord[];
+  relations: HistoryRelation[];
   prototype: boolean;
 };
 
@@ -64,13 +66,13 @@ export async function getHistoryData(): Promise<HistoryData> {
       .order("published_at", { ascending: true });
 
     if (recordsResult.error || !recordsResult.data?.length) {
-      return { records: prototypeRecords, prototype: true };
+      return { records: prototypeRecords, relations: [], prototype: true };
     }
 
     const records = recordsResult.data as HistoricalRecordRow[];
     const recordIds = records.map((record) => record.id);
 
-    const [eventsResult, peopleResult, markersResult, linksResult] = await Promise.all([
+    const [eventsResult, peopleResult, markersResult, linksResult, relationsResult] = await Promise.all([
       supabase.from("event_details").select("*").in("record_id", recordIds),
       supabase.from("person_details").select("*").in("record_id", recordIds),
       supabase
@@ -80,16 +82,22 @@ export async function getHistoryData(): Promise<HistoryData> {
         .eq("status", "published")
         .order("is_primary", { ascending: false }),
       supabase.from("record_sources").select("*").in("record_id", recordIds),
+      supabase
+        .from("relations")
+        .select("*")
+        .eq("status", "published")
+        .or(`from_record_id.in.(${recordIds.join(",")}),to_record_id.in.(${recordIds.join(",")})`),
     ]);
 
-    if (eventsResult.error || peopleResult.error || markersResult.error || linksResult.error) {
-      return { records: prototypeRecords, prototype: true };
+    if (eventsResult.error || peopleResult.error || markersResult.error || linksResult.error || relationsResult.error) {
+      return { records: prototypeRecords, relations: [], prototype: true };
     }
 
     const events = (eventsResult.data ?? []) as EventDetailRow[];
     const people = (peopleResult.data ?? []) as PersonDetailRow[];
     const markers = (markersResult.data ?? []) as MarkerRow[];
     const links = (linksResult.data ?? []) as RecordSourceRow[];
+    const relations = (relationsResult.data ?? []) as RelationRow[];
     const locationIds = markers.flatMap((marker) => marker.location_id ? [marker.location_id] : []);
     const sourceIds = [...new Set(links.map((link) => link.source_id))];
 
@@ -103,7 +111,7 @@ export async function getHistoryData(): Promise<HistoryData> {
     ]);
 
     if (locationsResult.error || sourcesResult.error) {
-      return { records: prototypeRecords, prototype: true };
+      return { records: prototypeRecords, relations: [], prototype: true };
     }
 
     const locations = (locationsResult.data ?? []) as LocationRow[];
@@ -184,10 +192,22 @@ export async function getHistoryData(): Promise<HistoryData> {
       }];
     });
 
+    const mappedRelations = relations
+      .filter((relation) => recordIds.includes(relation.from_record_id) && recordIds.includes(relation.to_record_id))
+      .map<HistoryRelation>((relation) => ({
+        id: relation.id,
+        fromRecordId: relation.from_record_id,
+        toRecordId: relation.to_record_id,
+        type: relation.relation_type,
+        explanation: { ru: relation.explanation_ru, kk: relation.explanation_kk },
+        fromYear: relation.from_year,
+        toYear: relation.to_year,
+      }));
+
     return mapped.length
-      ? { records: mapped, prototype: false }
-      : { records: prototypeRecords, prototype: true };
+      ? { records: mapped, relations: mappedRelations, prototype: false }
+      : { records: prototypeRecords, relations: [], prototype: true };
   } catch {
-    return { records: prototypeRecords, prototype: true };
+    return { records: prototypeRecords, relations: [], prototype: true };
   }
 }

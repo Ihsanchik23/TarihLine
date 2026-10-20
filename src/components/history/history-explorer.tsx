@@ -9,7 +9,8 @@ import {
   setWorkerUrl,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { HistoryRecord, Language } from "@/lib/history-types";
+import type { HistoryRecord, HistoryRelation, Language } from "@/lib/history-types";
+import { ComparisonView } from "./comparison-view";
 import "./history-explorer.css";
 
 setWorkerUrl(
@@ -24,6 +25,7 @@ const copy = {
   ru: {
     map: "Карта",
     about: "О проекте",
+    compare: "Сравнить",
     layers: "Слои карты",
     events: "События",
     people: "Личности",
@@ -56,6 +58,7 @@ const copy = {
   kk: {
     map: "Карта",
     about: "Жоба туралы",
+    compare: "Салыстыру",
     layers: "Карта қабаттары",
     events: "Оқиғалар",
     people: "Тұлғалар",
@@ -87,7 +90,7 @@ const copy = {
   },
 };
 
-function Icon({ name }: { name: "layers" | "event" | "person" | "fit" | "close" | "info" | "place" | "source" | "chevron" }) {
+function Icon({ name }: { name: "layers" | "event" | "person" | "fit" | "close" | "info" | "place" | "source" | "chevron" | "compare" }) {
   const paths = {
     layers: <><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></>,
     event: <><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></>,
@@ -98,6 +101,7 @@ function Icon({ name }: { name: "layers" | "event" | "person" | "fit" | "close" 
     place: <><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></>,
     source: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></>,
     chevron: <path d="m9 18 6-6-6-6"/>,
+    compare: <><path d="M7 4h10M7 4l3-3M7 4l3 3M17 20H7M17 20l-3-3M17 20l-3 3"/><path d="M5 8v8M19 8v8"/></>,
   };
 
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
@@ -118,10 +122,11 @@ function initials(value: string) {
 
 type Props = {
   records: HistoryRecord[];
+  relations: HistoryRelation[];
   prototype: boolean;
 };
 
-export function HistoryExplorer({ records, prototype }: Props) {
+export function HistoryExplorer({ records, relations, prototype }: Props) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
@@ -133,6 +138,7 @@ export function HistoryExplorer({ records, prototype }: Props) {
   const [mapError, setMapError] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [showAbout, setShowAbout] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
   const initialSelected = records.find((record) => record.type === "event" && isVisibleInYear(record, START_YEAR));
   const [selectedId, setSelectedId] = useState<string | null>(initialSelected?.id ?? null);
   const t = copy[language];
@@ -272,6 +278,20 @@ export function HistoryExplorer({ records, prototype }: Props) {
     window.setTimeout(() => setNotice(null), 3600);
   }
 
+  if (showComparison) {
+    return (
+      <ComparisonView
+        records={records}
+        relations={relations}
+        language={language}
+        prototype={prototype}
+        initialLeftId={selected?.type === "event" ? selected.id : null}
+        onLanguageChange={setLanguage}
+        onClose={() => setShowComparison(false)}
+      />
+    );
+  }
+
   return (
     <main className="history-app">
       <header className="app-header">
@@ -290,6 +310,10 @@ export function HistoryExplorer({ records, prototype }: Props) {
           <button className="nav-button" type="button" onClick={() => setShowAbout(true)}>
             <Icon name="info" />
             {t.about}
+          </button>
+          <button className="nav-button" type="button" onClick={() => setShowComparison(true)}>
+            <Icon name="compare" />
+            {t.compare}
           </button>
         </nav>
         <div className="header-actions">
