@@ -9,7 +9,8 @@ import {
   setWorkerUrl,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { HistoryRecord, HistoryRelation, Language } from "@/lib/history-types";
+import type { HistoricalMapLayer, HistoryRecord, HistoryRelation, Language } from "@/lib/history-types";
+import { renderHistoricalLayers, tarihLineMapStyle } from "@/lib/map-style";
 import { ComparisonView } from "./comparison-view";
 import "./history-explorer.css";
 
@@ -54,6 +55,10 @@ const copy = {
     data: "Данные",
     navigation: "Навигация",
     zoomHint: "Перетаскивайте карту и используйте колёсико или кнопки масштаба.",
+    ownMap: "Карта TarihLine",
+    historicalBorders: "Исторические границы",
+    bordersPending: "Проверенные границы для этого года ещё не опубликованы",
+    reconstruction: "Реконструкция",
   },
   kk: {
     map: "Карта",
@@ -87,6 +92,10 @@ const copy = {
     data: "Деректер",
     navigation: "Навигация",
     zoomHint: "Картаны жылжытып, масштаб үшін дөңгелекті немесе батырмаларды пайдаланыңыз.",
+    ownMap: "TarihLine картасы",
+    historicalBorders: "Тарихи шекаралар",
+    bordersPending: "Бұл жылға арналған тексерілген шекаралар әлі жарияланбаған",
+    reconstruction: "Реконструкция",
   },
 };
 
@@ -123,10 +132,11 @@ function initials(value: string) {
 type Props = {
   records: HistoryRecord[];
   relations: HistoryRelation[];
+  mapLayers: HistoricalMapLayer[];
   prototype: boolean;
 };
 
-export function HistoryExplorer({ records, relations, prototype }: Props) {
+export function HistoryExplorer({ records, relations, mapLayers, prototype }: Props) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
@@ -152,6 +162,10 @@ export function HistoryExplorer({ records, relations, prototype }: Props) {
     [yearRecords, showEvents, showPeople],
   );
   const selected = records.find((record) => record.id === selectedId) ?? null;
+  const activeMapLayers = useMemo(
+    () => mapLayers.filter((layer) => layer.validFrom <= year && layer.validTo >= year),
+    [mapLayers, year],
+  );
 
   useEffect(() => {
     const stored = window.localStorage.getItem("tarihline-language");
@@ -169,11 +183,11 @@ export function HistoryExplorer({ records, relations, prototype }: Props) {
 
     const map = new MapLibreMap({
       container: mapContainerRef.current,
-      style: "https://tiles.openfreemap.org/styles/positron",
+      style: tarihLineMapStyle,
       center: [61, 39],
       zoom: 2.1,
       minZoom: 1,
-      maxZoom: 14,
+      maxZoom: 7,
     });
 
     map.addControl(new NavigationControl({ showCompass: false }), "bottom-right");
@@ -193,6 +207,19 @@ export function HistoryExplorer({ records, relations, prototype }: Props) {
       mapRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+
+    const render = () => renderHistoricalLayers(map, activeMapLayers, language);
+    if (map.isStyleLoaded()) render();
+    else map.once("load", render);
+
+    return () => {
+      map.off("load", render);
+    };
+  }, [activeMapLayers, language, mapReady]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -283,6 +310,7 @@ export function HistoryExplorer({ records, relations, prototype }: Props) {
       <ComparisonView
         records={records}
         relations={relations}
+        mapLayers={mapLayers}
         language={language}
         prototype={prototype}
         initialLeftId={selected?.type === "event" ? selected.id : null}
@@ -403,6 +431,14 @@ export function HistoryExplorer({ records, relations, prototype }: Props) {
           {!mapReady && !mapError && <div className="map-loading"><span />TarihLine</div>}
           {mapError && <div className="map-error"><Icon name="info"/><p>{t.mapUnavailable}</p></div>}
           <div className="map-year-stamp"><span>{t.selectedYear}</span><strong>{year}</strong></div>
+          <div className={activeMapLayers.length ? "map-layer-status is-active" : "map-layer-status"}>
+            <strong>{activeMapLayers.length ? t.historicalBorders : t.ownMap}</strong>
+            <span>
+              {activeMapLayers.length
+                ? activeMapLayers.map((layer) => `${layer.title[language]}${layer.reconstruction ? ` · ${t.reconstruction}` : ""}`).join(" · ")
+                : t.bordersPending}
+            </span>
+          </div>
           <div className="map-hint">{t.zoomHint}</div>
 
           {selected && (
@@ -497,7 +533,7 @@ export function HistoryExplorer({ records, relations, prototype }: Props) {
             <h2 id="about-title">{t.aboutTitle}</h2>
             <p>{t.aboutText}</p>
             <div className="about-rule"><Icon name="info"/><p>{t.aboutNote}</p></div>
-            <div className="about-meta"><span><strong>1949–1963</strong>{t.data}</span><span><strong>RU · ҚАЗ</strong>Тіл / Язык</span><span><strong>MapLibre</strong>OpenFreeMap</span></div>
+            <div className="about-meta"><span><strong>1949–1963</strong>{t.data}</span><span><strong>RU · ҚАЗ</strong>Тіл / Язык</span><span><strong>MapLibre</strong>Natural Earth</span></div>
           </section>
         </div>
       )}

@@ -38,3 +38,19 @@ export type HistoryRelation = {
   fromYear: number | null;
   toYear: number | null;
 };
+
+export type HistoricalMapLayer = {
+  id: string;
+  title: LocalizedText;
+  areaLabel: LocalizedText;
+  snapshotYear: number;
+  validFrom: number;
+  validTo: number;
+  geojsonUrl: string;
+  administrativeLevel: string;
+  coverage: string;
+  reconstruction: boolean;
+  license: string;
+  priority: number;
+  source: HistorySource;
+};

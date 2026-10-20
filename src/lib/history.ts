@@ -1,5 +1,5 @@
 import { prototypeRecords } from "@/data/prototype-records";
-import type { HistoryRecord, HistoryRelation } from "@/lib/history-types";
+import type { HistoricalMapLayer, HistoryRecord, HistoryRelation } from "@/lib/history-types";
 import type { Tables } from "@/types/database";
 import { createClient } from "./supabase/server";
 
@@ -11,12 +11,64 @@ type LocationRow = Tables<"locations">;
 type RecordSourceRow = Tables<"record_sources">;
 type SourceRow = Tables<"sources">;
 type RelationRow = Tables<"relations">;
+type BorderLayerRow = Tables<"border_layers">;
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 export type HistoryData = {
   records: HistoryRecord[];
   relations: HistoryRelation[];
+  mapLayers: HistoricalMapLayer[];
   prototype: boolean;
 };
+
+function resolveGeojsonUrl(client: SupabaseServerClient, path: string) {
+  if (/^https?:\/\//.test(path) || path.startsWith("/")) return path;
+  return client.storage.from("historical-maps").getPublicUrl(path).data.publicUrl;
+}
+
+async function loadMapLayers(client: SupabaseServerClient) {
+  const layersResult = await client
+    .from("border_layers")
+    .select("*")
+    .eq("status", "published")
+    .order("priority", { ascending: false });
+
+  if (layersResult.error || !layersResult.data?.length) return [];
+
+  const layers = layersResult.data as BorderLayerRow[];
+  const sourceIds = [...new Set(layers.map((layer) => layer.source_id))];
+  const sourcesResult = await client.from("sources").select("*").in("id", sourceIds);
+  if (sourcesResult.error) return [];
+
+  const sourceById = new Map(
+    ((sourcesResult.data ?? []) as SourceRow[]).map((source) => [source.id, source]),
+  );
+
+  return layers.flatMap<HistoricalMapLayer>((layer) => {
+    const source = sourceById.get(layer.source_id);
+    if (!source) return [];
+
+    return [{
+      id: layer.id,
+      title: { ru: layer.title_ru, kk: layer.title_kk },
+      areaLabel: { ru: layer.area_label_ru, kk: layer.area_label_kk },
+      snapshotYear: layer.snapshot_year,
+      validFrom: layer.valid_from,
+      validTo: layer.valid_to,
+      geojsonUrl: resolveGeojsonUrl(client, layer.geojson_path),
+      administrativeLevel: layer.administrative_level,
+      coverage: layer.coverage,
+      reconstruction: layer.reconstruction,
+      license: layer.license,
+      priority: layer.priority,
+      source: {
+        title: source.title,
+        url: source.url ?? "",
+        publisher: source.publisher ?? source.title,
+      },
+    }];
+  });
+}
 
 function eventDateLabel(detail: EventDetailRow) {
   if (detail.start_date) {
@@ -59,6 +111,7 @@ function personDateLabel(detail: PersonDetailRow) {
 export async function getHistoryData(): Promise<HistoryData> {
   try {
     const supabase = await createClient();
+    const mapLayers = await loadMapLayers(supabase);
     const recordsResult = await supabase
       .from("historical_records")
       .select("*")
@@ -66,7 +119,7 @@ export async function getHistoryData(): Promise<HistoryData> {
       .order("published_at", { ascending: true });
 
     if (recordsResult.error || !recordsResult.data?.length) {
-      return { records: prototypeRecords, relations: [], prototype: true };
+      return { records: prototypeRecords, relations: [], mapLayers, prototype: true };
     }
 
     const records = recordsResult.data as HistoricalRecordRow[];
@@ -90,7 +143,7 @@ export async function getHistoryData(): Promise<HistoryData> {
     ]);
 
     if (eventsResult.error || peopleResult.error || markersResult.error || linksResult.error || relationsResult.error) {
-      return { records: prototypeRecords, relations: [], prototype: true };
+      return { records: prototypeRecords, relations: [], mapLayers, prototype: true };
     }
 
     const events = (eventsResult.data ?? []) as EventDetailRow[];
@@ -111,7 +164,7 @@ export async function getHistoryData(): Promise<HistoryData> {
     ]);
 
     if (locationsResult.error || sourcesResult.error) {
-      return { records: prototypeRecords, relations: [], prototype: true };
+      return { records: prototypeRecords, relations: [], mapLayers, prototype: true };
     }
 
     const locations = (locationsResult.data ?? []) as LocationRow[];
@@ -205,9 +258,9 @@ export async function getHistoryData(): Promise<HistoryData> {
       }));
 
     return mapped.length
-      ? { records: mapped, relations: mappedRelations, prototype: false }
-      : { records: prototypeRecords, relations: [], prototype: true };
+      ? { records: mapped, relations: mappedRelations, mapLayers, prototype: false }
+      : { records: prototypeRecords, relations: [], mapLayers, prototype: true };
   } catch {
-    return { records: prototypeRecords, relations: [], prototype: true };
+    return { records: prototypeRecords, relations: [], mapLayers: [], prototype: true };
   }
 }

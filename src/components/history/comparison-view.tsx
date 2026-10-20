@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Map as MapLibreMap, Marker, NavigationControl } from "maplibre-gl";
-import type { HistoryRecord, HistoryRelation, Language } from "@/lib/history-types";
+import type { HistoricalMapLayer, HistoryRecord, HistoryRelation, Language } from "@/lib/history-types";
+import { renderHistoricalLayers, tarihLineMapStyle } from "@/lib/map-style";
 
 const comparisonCopy = {
   ru: {
@@ -52,9 +53,10 @@ const comparisonCopy = {
 type ComparisonMapProps = {
   record: HistoryRecord;
   language: Language;
+  mapLayers: HistoricalMapLayer[];
 };
 
-function ComparisonMap({ record, language }: ComparisonMapProps) {
+function ComparisonMap({ record, language, mapLayers }: ComparisonMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState(false);
 
@@ -63,11 +65,11 @@ function ComparisonMap({ record, language }: ComparisonMapProps) {
 
     const map = new MapLibreMap({
       container: containerRef.current,
-      style: "https://tiles.openfreemap.org/styles/positron",
+      style: tarihLineMapStyle,
       center: record.coordinates,
       zoom: 3.5,
       minZoom: 1,
-      maxZoom: 12,
+      maxZoom: 7,
     });
     map.addControl(new NavigationControl({ showCompass: false }), "bottom-right");
 
@@ -83,6 +85,11 @@ function ComparisonMap({ record, language }: ComparisonMapProps) {
     map.on("load", () => {
       window.clearTimeout(fallbackTimer);
       setError(false);
+      renderHistoricalLayers(
+        map,
+        mapLayers.filter((layer) => layer.validFrom <= record.startYear && layer.validTo >= record.startYear),
+        language,
+      );
     });
 
     return () => {
@@ -90,7 +97,7 @@ function ComparisonMap({ record, language }: ComparisonMapProps) {
       marker.remove();
       map.remove();
     };
-  }, [language, record]);
+  }, [language, mapLayers, record]);
 
   return (
     <div className="comparison-map">
@@ -105,12 +112,13 @@ type EventPanelProps = {
   label: string;
   record: HistoryRecord;
   events: HistoryRecord[];
+  mapLayers: HistoricalMapLayer[];
   otherId: string;
   language: Language;
   onChange: (id: string) => void;
 };
 
-function EventPanel({ label, record, events, otherId, language, onChange }: EventPanelProps) {
+function EventPanel({ label, record, events, mapLayers, otherId, language, onChange }: EventPanelProps) {
   const t = comparisonCopy[language];
 
   return (
@@ -125,7 +133,7 @@ function EventPanel({ label, record, events, otherId, language, onChange }: Even
           ))}
         </select>
       </div>
-      {record.coordinates && <ComparisonMap record={record} language={language} />}
+      {record.coordinates && <ComparisonMap record={record} language={language} mapLayers={mapLayers} />}
       <div className="comparison-panel__content">
         <div className="comparison-date">{record.dateLabel[language]}</div>
         <h2>{record.title[language]}</h2>
@@ -156,6 +164,7 @@ function EventPanel({ label, record, events, otherId, language, onChange }: Even
 type Props = {
   records: HistoryRecord[];
   relations: HistoryRelation[];
+  mapLayers: HistoricalMapLayer[];
   language: Language;
   prototype: boolean;
   initialLeftId: string | null;
@@ -163,7 +172,7 @@ type Props = {
   onClose: () => void;
 };
 
-export function ComparisonView({ records, relations, language, prototype, initialLeftId, onLanguageChange, onClose }: Props) {
+export function ComparisonView({ records, relations, mapLayers, language, prototype, initialLeftId, onLanguageChange, onClose }: Props) {
   const events = useMemo(
     () => records.filter((record) => record.type === "event").sort((a, b) => a.startYear - b.startYear),
     [records],
@@ -229,8 +238,8 @@ export function ComparisonView({ records, relations, language, prototype, initia
       </section>
 
       <section className="comparison-grid">
-        <EventPanel label={t.first} record={left} events={events} otherId={right.id} language={language} onChange={changeLeft} />
-        <EventPanel label={t.second} record={right} events={events} otherId={left.id} language={language} onChange={changeRight} />
+        <EventPanel label={t.first} record={left} events={events} mapLayers={mapLayers} otherId={right.id} language={language} onChange={changeLeft} />
+        <EventPanel label={t.second} record={right} events={events} mapLayers={mapLayers} otherId={left.id} language={language} onChange={changeRight} />
       </section>
 
       <section className={relation ? "comparison-relation is-confirmed" : "comparison-relation"}>

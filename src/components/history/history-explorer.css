@@ -553,6 +553,41 @@
   font-size: 25px;
 }
 
+.map-layer-status {
+  position: absolute;
+  top: 90px;
+  left: 20px;
+  z-index: 4;
+  display: grid;
+  max-width: 310px;
+  gap: 3px;
+  padding: 9px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  border-radius: 8px;
+  color: #59645f;
+  background: rgba(255, 253, 248, 0.86);
+  box-shadow: 0 5px 16px rgba(24, 33, 29, 0.07);
+  backdrop-filter: blur(9px);
+}
+
+.map-layer-status strong {
+  color: var(--green);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.map-layer-status span {
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.map-layer-status.is-active {
+  border-color: rgba(23, 88, 70, 0.22);
+  background: rgba(230, 239, 234, 0.92);
+}
+
 .map-hint {
   position: absolute;
   right: 58px;
@@ -1394,6 +1429,13 @@
   .map-year-stamp {
     top: 12px;
     left: 12px;
+  }
+
+  .map-layer-status {
+    top: 82px;
+    right: 12px;
+    left: 12px;
+    max-width: 270px;
   }
 
   .timeline-panel {
