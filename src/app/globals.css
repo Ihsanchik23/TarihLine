@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+  --font-family: Arial, Helvetica, sans-serif;
+  --font-weight: 300;
   --ink: #18211d;
   --muted: #68736e;
   --paper: #f5f2eb;
@@ -20,6 +22,8 @@
 html {
   min-width: 320px;
   background: var(--paper);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight);
 }
 
 body {
@@ -27,7 +31,13 @@ body {
   margin: 0;
   color: var(--ink);
   background: var(--paper);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight);
+}
+
+body * {
+  font-family: var(--font-family) !important;
+  font-weight: var(--font-weight) !important;
 }
 
 button,
