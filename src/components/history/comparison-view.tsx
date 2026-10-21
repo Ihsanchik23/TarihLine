@@ -24,6 +24,7 @@ const comparisonCopy = {
     significance: "Историческое значение",
     source: "Источник",
     duplicate: "Для сравнения выберите два разных события",
+    empty: "Для сравнения нужно опубликовать минимум два события.",
     mapUnavailable: "Карта недоступна",
   },
   kk: {
@@ -44,6 +45,7 @@ const comparisonCopy = {
     significance: "Тарихи маңызы",
     source: "Дереккөз",
     duplicate: "Салыстыру үшін екі түрлі оқиғаны таңдаңыз",
+    empty: "Салыстыру үшін кемінде екі оқиғаны жариялау керек.",
     mapUnavailable: "Карта қолжетімсіз",
   },
 };
@@ -193,7 +195,14 @@ export function ComparisonView({ records, relations, mapLayers, language, initia
   const right = events.find((event) => event.id === rightId) ?? defaultRight;
   const t = comparisonCopy[language];
 
-  if (!left || !right) return null;
+  if (!left || !right) return <main className="comparison-app comparison-app--empty">
+    <header className="comparison-header">
+      <button className="comparison-back" type="button" onClick={onClose}><span aria-hidden="true">←</span>{t.back}</button>
+      <div className="comparison-heading"><span>TarihLine</span><h1>{t.title}</h1><p>{t.subtitle}</p></div>
+      <div className="comparison-actions"><div className="language-switch" aria-label="Тіл / Язык"><button className={language === "kk" ? "is-active" : ""} type="button" onClick={() => onLanguageChange("kk")}>ҚАЗ</button><button className={language === "ru" ? "is-active" : ""} type="button" onClick={() => onLanguageChange("ru")}>РУС</button></div></div>
+    </header>
+    <section className="comparison-empty"><span aria-hidden="true">⇄</span><p>{t.empty}</p></section>
+  </main>;
 
   const yearDifference = Math.abs(right.startYear - left.startYear);
   const relation = relations.find((item) => (

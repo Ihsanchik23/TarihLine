@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { HistoryRecord, Language } from "@/lib/history-types";
+import { PublicSidebar } from "@/components/public-sidebar";
 import "./catalog-explorer.css";
 
 const copy = {
@@ -84,10 +85,10 @@ export function CatalogExplorer({ records }: { records: HistoryRecord[] }) {
     setQuery(""); setType("all"); setCategory("all"); setPeriod("all"); setSort("oldest");
   }
 
-  return <main className="catalog-app">
+  return <main className="catalog-app has-public-sidebar">
+    <PublicSidebar active="catalog" language={language} />
     <header className="catalog-header">
       <Link className="catalog-brand" href="/"><span>T</span><div><strong>TarihLine</strong><small>Қазақстан · 1900–2000</small></div></Link>
-      <nav aria-label={language === "ru" ? "Навигация" : "Навигация"}><Link href="/">{t.map}</Link><Link className="is-active" href="/catalog">{t.catalog}</Link><Link href="/profile">{t.profile}</Link></nav>
       <div className="language-switch" aria-label="Тіл / Язык"><button className={language === "kk" ? "is-active" : ""} type="button" onClick={() => setLanguage("kk")}>ҚАЗ</button><button className={language === "ru" ? "is-active" : ""} type="button" onClick={() => setLanguage("ru")}>РУС</button></div>
     </header>
     <section className="catalog-hero"><span>{t.kicker}</span><h1>{t.title}</h1><p>{t.lead}</p><div className="catalog-stat"><strong>{records.length}</strong><span>{records.length === 1 ? t.oneResult : t.results}</span></div></section>

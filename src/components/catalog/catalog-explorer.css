@@ -11,7 +11,7 @@
   height: 74px;
   padding: 0 32px;
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 24px;
   border-bottom: 1px solid var(--line);

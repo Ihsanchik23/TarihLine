@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { deleteNote, saveNote, toggleBookmark } from "@/app/profile/actions";
 import type { HistoryRecord, HistoryRelation, Language } from "@/lib/history-types";
+import { PublicSidebar } from "@/components/public-sidebar";
 import "./record-detail.css";
 
 type RelatedRecord = {
@@ -85,10 +86,10 @@ export function RecordDetail({ record, related, notes, isAuthenticated, isBookma
   const paragraphs = record.description[language].split(/\n+/).filter(Boolean);
   const coordinates = record.coordinates?.map((value) => value.toFixed(4)).join(", ");
 
-  return <main className="record-page">
+  return <main className="record-page has-public-sidebar">
+    <PublicSidebar active="catalog" language={language} />
     <header className="record-header">
       <Link className="record-brand" href="/"><span>T</span><div><strong>TarihLine</strong><small>Қазақстан · 1900–2000</small></div></Link>
-      <nav aria-label="Навигация"><Link href="/">{t.map}</Link><Link className="is-active" href="/catalog">{t.catalog}</Link><Link href="/profile">{t.profile}</Link></nav>
       <div className="record-language" aria-label="Тіл / Язык"><button className={language === "kk" ? "is-active" : ""} type="button" onClick={() => setLanguage("kk")}>ҚАЗ</button><button className={language === "ru" ? "is-active" : ""} type="button" onClick={() => setLanguage("ru")}>РУС</button></div>
     </header>
 

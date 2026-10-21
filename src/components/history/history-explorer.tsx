@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import {
-  LngLatBounds,
   Map as MapLibreMap,
   type MapGeoJSONFeature,
   type MapMouseEvent,
@@ -14,6 +12,7 @@ import {
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { HistoricalMapLayer, HistoryRecord, HistoryRelation, Language } from "@/lib/history-types";
 import { collapseMapAttribution, historicalFillLayerId, renderHistoricalLayers, tarihLineMapStyle } from "@/lib/map-style";
+import { PublicSidebar } from "@/components/public-sidebar";
 import { ComparisonView } from "./comparison-view";
 import "./history-explorer.css";
 
@@ -140,6 +139,7 @@ type Props = {
   mapLayers: HistoricalMapLayer[];
   initialYear?: number;
   initialRecordId?: string;
+  initialCompare?: boolean;
 };
 
 type Territory = {
@@ -176,7 +176,7 @@ function wikipediaUrl(value: string) {
   return `https://en.wikipedia.org/wiki/${encodeURIComponent(value.replaceAll(" ", "_"))}`;
 }
 
-export function HistoryExplorer({ records, relations, mapLayers, initialYear, initialRecordId }: Props) {
+export function HistoryExplorer({ records, relations, mapLayers, initialYear, initialRecordId, initialCompare = false }: Props) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
@@ -184,27 +184,21 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
   const [language, setLanguage] = useState<Language>("ru");
   const startingYear = initialYear ?? START_YEAR;
   const [year, setYear] = useState(startingYear);
-  const [showEvents, setShowEvents] = useState(true);
-  const [showPeople, setShowPeople] = useState(true);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
-  const [showComparison, setShowComparison] = useState(false);
+  const [showComparison, setShowComparison] = useState(initialCompare);
   const [hoveredTerritory, setHoveredTerritory] = useState<Territory | null>(null);
   const [selectedTerritory, setSelectedTerritory] = useState<Territory | null>(null);
   const initialSelected = records.find((record) => record.id === initialRecordId && isVisibleInYear(record, startingYear))
     ?? records.find((record) => record.type === "event" && isVisibleInYear(record, startingYear));
   const [selectedId, setSelectedId] = useState<string | null>(initialSelected?.id ?? null);
+  const [eventCardOpen, setEventCardOpen] = useState(Boolean(initialSelected));
   const t = copy[language];
-  const hasRecords = records.length > 0;
-
   const yearRecords = useMemo(
     () => records.filter((record) => isVisibleInYear(record, year)),
     [records, year],
   );
-  const visibleRecords = useMemo(
-    () => yearRecords.filter((record) => record.type === "event" ? showEvents : showPeople),
-    [yearRecords, showEvents, showPeople],
-  );
+  const visibleRecords = yearRecords;
   const selected = records.find((record) => record.id === selectedId) ?? null;
   const activeMapLayers = useMemo(
     () => mapLayers.filter((layer) => layer.validFrom <= year && layer.validTo >= year),
@@ -376,6 +370,7 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
       element.addEventListener("click", () => {
         setSelectedTerritory(null);
         setSelectedId(record.id);
+        setEventCardOpen(true);
       });
 
       const marker = new Marker({
@@ -400,23 +395,6 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
     mapRef.current.flyTo({ center: selected.coordinates, zoom: Math.max(mapRef.current.getZoom(), 4.2), duration: 850 });
   }, [selected]);
 
-  function fitVisibleRecords() {
-    const map = mapRef.current;
-    const points = visibleRecords.flatMap((record) => record.coordinates ? [record.coordinates] : []);
-    if (!map || !points.length) return;
-
-    if (points.length === 1) {
-      map.flyTo({ center: points[0], zoom: 5, duration: 700 });
-      return;
-    }
-
-    const bounds = points.reduce(
-      (value, point) => value.extend(point),
-      new LngLatBounds(points[0], points[0]),
-    );
-    map.fitBounds(bounds, { padding: 90, maxZoom: 5.5, duration: 800 });
-  }
-
   function changeYear(value: number) {
     const nextYear = Math.min(MAX_YEAR, Math.max(MIN_YEAR, value));
     setYear(nextYear);
@@ -424,22 +402,9 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
     if (selectedTerritory && (selectedTerritory.validFrom > nextYear || selectedTerritory.validTo < nextYear)) setSelectedTerritory(null);
   }
 
-  if (showComparison) {
-    return (
-      <ComparisonView
-        records={records}
-        relations={relations}
-        mapLayers={mapLayers}
-        language={language}
-        initialLeftId={selected?.type === "event" ? selected.id : null}
-        onLanguageChange={setLanguage}
-        onClose={() => setShowComparison(false)}
-      />
-    );
-  }
-
   return (
-    <main className="history-app">
+    <main className="history-app has-public-sidebar">
+      <PublicSidebar active={showComparison ? "compare" : "map"} language={language} onCompare={() => setShowComparison(true)} />
       <header className="app-header">
         <div className="app-brand" aria-label="TarihLine">
           <span className="app-brand__mark">T</span>
@@ -448,27 +413,7 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
             <span>Қазақстан · 1900–2000</span>
           </div>
         </div>
-        <nav aria-label={t.navigation}>
-          <Link className="nav-button is-active" href="/">
-            <span className="nav-button__dot" />
-            {t.map}
-          </Link>
-          <Link className="nav-button" href="/catalog">
-            {t.catalog}
-          </Link>
-          <Link className="nav-button" href="/profile">
-            {t.profile}
-          </Link>
-          {hasRecords && (
-            <button className="nav-button" type="button" onClick={() => setShowComparison(true)}>
-              <Icon name="compare" />
-              {t.compare}
-            </button>
-          )}
-        </nav>
         <div className="header-actions">
-          <Link className="mobile-catalog-link" href="/catalog">{t.catalog}</Link>
-          <Link className="mobile-catalog-link" href="/profile">{t.profile}</Link>
           <div className="language-switch" aria-label="Тіл / Язык">
             <button className={language === "kk" ? "is-active" : ""} type="button" onClick={() => setLanguage("kk")}>ҚАЗ</button>
             <button className={language === "ru" ? "is-active" : ""} type="button" onClick={() => setLanguage("ru")}>РУС</button>
@@ -476,89 +421,11 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
         </div>
       </header>
 
-      <section className={hasRecords ? "map-workspace" : "map-workspace map-workspace--map-only"}>
-        {hasRecords && <aside className="records-panel">
-          <div className="panel-section layers-section">
-            <div className="panel-title">
-              <Icon name="layers" />
-              <span>{t.layers}</span>
-            </div>
-            <div className="layer-toggles">
-              <button className={showEvents ? "layer-toggle is-active" : "layer-toggle"} type="button" aria-pressed={showEvents} onClick={() => {
-                setShowEvents((value) => !value);
-                if (showEvents && selected?.type === "event") setSelectedId(null);
-              }}>
-                <span className="layer-icon layer-icon--event"><Icon name="event" /></span>
-                <span>{t.events}</span>
-                <span className="toggle-state" />
-              </button>
-              <button className={showPeople ? "layer-toggle is-active" : "layer-toggle"} type="button" aria-pressed={showPeople} onClick={() => {
-                setShowPeople((value) => !value);
-                if (showPeople && selected?.type === "person") setSelectedId(null);
-              }}>
-                <span className="layer-icon layer-icon--person"><Icon name="person" /></span>
-                <span>{t.people}</span>
-                <span className="toggle-state" />
-              </button>
-            </div>
-          </div>
-
-          <div className="panel-section records-section">
-            <div className="records-heading">
-              <div>
-                <span>{t.records}</span>
-                <strong>{year}</strong>
-              </div>
-              <button type="button" onClick={fitVisibleRecords} disabled={!visibleRecords.length}>
-                <Icon name="fit" />
-                {t.allEvents}
-              </button>
-            </div>
-            <div className="record-list">
-              {visibleRecords.map((record) => (
-                <button
-                  className={selectedId === record.id ? "record-row is-selected" : "record-row"}
-                  type="button"
-                  key={record.id}
-                  onClick={() => {
-                    setSelectedTerritory(null);
-                    setSelectedId(record.id);
-                  }}
-                >
-                  <span className={`record-symbol record-symbol--${record.type}`}>
-                    {record.type === "person" ? initials(record.title[language]) : record.startYear}
-                  </span>
-                  <span className="record-row__copy">
-                    <strong>{record.title[language]}</strong>
-                    <span>{record.location[language]}</span>
-                  </span>
-                  <Icon name="chevron" />
-                </button>
-              ))}
-              {!visibleRecords.length && (
-                <div className="empty-state">
-                  <Icon name="info" />
-                  <p>{yearRecords.length ? t.hiddenRecords : t.noRecords}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-        </aside>}
-
+      <section className="map-workspace map-workspace--map-only">
         <div className="map-stage">
           <div className="map-canvas" ref={mapContainerRef} />
           {!mapReady && !mapError && <div className="map-loading"><span />TarihLine</div>}
           {mapError && <div className="map-error"><Icon name="info"/><p>{t.mapUnavailable}</p></div>}
-          <div className="map-year-stamp"><span>{t.selectedYear}</span><strong>{year}</strong></div>
-          <div className={activeMapLayers.length ? "map-layer-status is-active" : "map-layer-status"}>
-            <strong>{activeMapLayers.length ? t.historicalBorders : t.ownMap}</strong>
-            <span>
-              {activeMapLayers.length
-                ? activeMapLayers.map((layer) => `${layer.title[language]}${layer.reconstruction ? ` · ${t.reconstruction}` : ""}`).join(" · ")
-                : t.bordersPending}
-            </span>
-          </div>
           <div className="map-hint">{t.zoomHint} {t.territoryHint}</div>
 
           {hoveredTerritory && !selectedTerritory && <div className="territory-hover" aria-live="polite"><strong>{hoveredTerritory.name}</strong><span>{hoveredTerritory.validFrom}–{hoveredTerritory.validTo}</span></div>}
@@ -576,7 +443,7 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
           </article>}
 
           {selected && (
-            <article className="detail-card" aria-live="polite">
+            <article className={eventCardOpen ? "detail-card event-card is-open" : "detail-card event-card is-collapsed"} aria-live="polite" aria-hidden={!eventCardOpen}>
               <button className="detail-close" type="button" aria-label={t.close} onClick={() => setSelectedId(null)}><Icon name="close" /></button>
               <div className="detail-card__type">
                 <span className={`detail-type-icon detail-type-icon--${selected.type}`}><Icon name={selected.type === "event" ? "event" : "person"} /></span>
@@ -615,8 +482,10 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
                   </section>
                 )}
               </div>
+              <button className="event-card-collapse" type="button" onClick={() => setEventCardOpen(false)} aria-label={language === "ru" ? "Скрыть карточку" : "Карточканы жасыру"}><span aria-hidden="true">‹</span></button>
             </article>
           )}
+          {selected && !eventCardOpen && <button className="event-card-restore" type="button" onClick={() => setEventCardOpen(true)} aria-label={language === "ru" ? "Показать карточку" : "Карточканы көрсету"}><span aria-hidden="true">›</span></button>}
         </div>
       </section>
 
@@ -652,6 +521,18 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
           </div>
         </div>
       </section>
+
+      {showComparison && <div className="comparison-overlay" role="dialog" aria-modal="true" aria-label={language === "ru" ? "Сравнение событий" : "Оқиғаларды салыстыру"}>
+        <ComparisonView
+          records={records}
+          relations={relations}
+          mapLayers={mapLayers}
+          language={language}
+          initialLeftId={selected?.type === "event" ? selected.id : null}
+          onLanguageChange={setLanguage}
+          onClose={() => setShowComparison(false)}
+        />
+      </div>}
 
     </main>
   );

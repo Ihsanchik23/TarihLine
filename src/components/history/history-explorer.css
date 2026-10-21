@@ -1946,3 +1946,272 @@
     grid-template-columns: 92px minmax(0, 1fr);
   }
 }
+
+/* Compact map workspace with persistent navigation. */
+.history-app.has-public-sidebar {
+  grid-template-rows: 64px minmax(360px, 1fr) 104px;
+  min-height: 620px;
+}
+
+.history-app .app-header {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 0 20px;
+}
+
+.history-app .map-workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.history-app .map-error > svg {
+  width: 28px;
+  height: 28px;
+}
+
+.event-card {
+  right: auto;
+  left: 16px;
+  width: min(380px, calc(100% - 88px));
+  transform-origin: left center;
+  transition: transform 280ms cubic-bezier(.22, .7, .25, 1), opacity 180ms ease, visibility 0s linear;
+}
+
+.event-card.is-collapsed {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(calc(-100% - 18px)) scale(0.96);
+  transition-delay: 0s, 0s, 280ms;
+}
+
+.event-card-collapse {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  width: 100%;
+  height: 42px;
+  place-items: center;
+  border: 0;
+  border-top: 1px solid var(--line);
+  color: var(--green);
+  background: rgba(255, 253, 248, 0.96);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.event-card-collapse span {
+  display: block;
+  font-size: 25px;
+  line-height: 1;
+  transform: rotate(-90deg);
+}
+
+.event-card-restore {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 9;
+  display: grid;
+  width: 28px;
+  height: 54px;
+  place-items: center;
+  border: 1px solid rgba(23, 88, 70, 0.25);
+  border-left: 0;
+  border-radius: 0 12px 12px 0;
+  color: var(--green);
+  background: rgba(255, 253, 248, 0.94);
+  box-shadow: 5px 0 16px rgba(24, 33, 29, 0.12);
+  cursor: pointer;
+  transform: translateY(-50%);
+  animation: event-card-restore 180ms ease both;
+}
+
+.event-card-restore span {
+  font-size: 23px;
+}
+
+@keyframes event-card-restore {
+  from { opacity: 0; transform: translate(-12px, -50%); }
+  to { opacity: 1; transform: translate(0, -50%); }
+}
+
+.history-app .timeline-panel {
+  grid-template-columns: 168px minmax(0, 1fr);
+}
+
+.history-app .timeline-year-control {
+  grid-template-columns: 32px 1fr 32px;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.history-app .timeline-year-control button {
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+}
+
+.history-app .timeline-year-control div {
+  gap: 2px;
+}
+
+.history-app .timeline-year-control strong {
+  font-size: 25px;
+}
+
+.history-app .timeline-year-control small {
+  display: none;
+}
+
+.history-app .timeline-main {
+  gap: 6px;
+  padding: 9px 24px 10px;
+}
+
+.history-app .working-scale {
+  gap: 3px;
+}
+
+.history-app .timeline-slider {
+  height: 16px;
+}
+
+.history-app .timeline-slider input {
+  height: 16px;
+}
+
+.comparison-overlay {
+  position: fixed;
+  inset: 0 0 0 64px;
+  z-index: 60;
+  overflow: auto;
+  background: #f1f0ea;
+  animation: comparison-overlay-in 220ms cubic-bezier(.22, .7, .25, 1) both;
+}
+
+.comparison-empty {
+  display: grid;
+  min-height: calc(100dvh - 90px);
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 32px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.comparison-empty span {
+  color: var(--green);
+  font-size: 42px;
+}
+
+.comparison-empty p {
+  max-width: 360px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@keyframes comparison-overlay-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 900px) {
+  .history-app.has-public-sidebar {
+    display: grid;
+    grid-template-rows: 58px minmax(360px, 1fr) 88px;
+    height: 100dvh;
+    min-height: 560px;
+    overflow: hidden;
+  }
+
+  .history-app .app-header {
+    position: relative;
+    top: auto;
+    height: auto;
+    padding: 0 12px;
+  }
+
+  .history-app .map-workspace {
+    display: grid;
+    min-height: 0;
+  }
+
+  .history-app .map-stage {
+    order: initial;
+    height: auto;
+    min-height: 0;
+  }
+
+  .event-card {
+    position: absolute;
+    top: 10px;
+    right: auto;
+    bottom: 10px;
+    left: 10px;
+    width: min(340px, calc(100% - 54px));
+    max-height: none;
+    border: 1px solid rgba(24, 33, 29, 0.12);
+    border-radius: 14px;
+  }
+
+  .event-card::before {
+    display: none;
+  }
+
+  .history-app .timeline-panel {
+    position: relative;
+    bottom: auto;
+    grid-template-columns: 114px minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .history-app .timeline-year-control {
+    grid-template-columns: 27px 1fr 27px;
+    padding: 7px 8px;
+  }
+
+  .history-app .timeline-year-control button {
+    width: 27px;
+    height: 27px;
+  }
+
+  .history-app .timeline-year-control strong {
+    font-size: 21px;
+  }
+
+  .history-app .timeline-main {
+    padding: 7px 10px;
+  }
+
+  .comparison-overlay {
+    left: 54px;
+  }
+}
+
+@media (max-width: 520px) {
+  .history-app .app-header {
+    padding-right: 88px;
+  }
+
+  .history-app .header-actions {
+    position: absolute;
+    right: 8px;
+  }
+
+  .history-app .language-switch button {
+    min-width: 32px;
+    padding: 0 5px;
+  }
+
+  .history-app .app-brand > div span,
+  .history-app .working-scale__labels strong,
+  .history-app .year-ticks {
+    display: none;
+  }
+
+  .history-app .timeline-panel {
+    grid-template-columns: 108px minmax(0, 1fr);
+  }
+}

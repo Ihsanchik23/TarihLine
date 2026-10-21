@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getHistoryData } from "@/lib/history";
 import { createClient } from "@/lib/supabase/server";
+import { PublicSidebar } from "@/components/public-sidebar";
 import { deleteNote, logout, toggleBookmark, updateProfile } from "./actions";
 import "./profile.css";
 
@@ -43,10 +44,10 @@ export default async function ProfilePage({ searchParams }: Props) {
   const favorites = history.records.filter((record) => bookmarkedIds.has(record.id));
   const notes = (notesResult.data ?? []).map((note) => ({ note, record: history.records.find((record) => record.id === note.record_id) }));
 
-  return <main className="profile-page">
+  return <main className="profile-page has-public-sidebar">
+    <PublicSidebar active="profile" />
     <header className="profile-header">
       <Link className="profile-brand" href="/"><span>T</span><div><strong>TarihLine</strong><small>Қазақстан · 1900–2000</small></div></Link>
-      <nav aria-label="Навигация"><Link href="/">Карта</Link><Link href="/catalog">Каталог</Link><Link className="is-active" href="/profile">Профиль</Link></nav>
       <form action={logout}><button type="submit">Выйти</button></form>
     </header>
 
