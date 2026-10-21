@@ -192,7 +192,7 @@
 .record-map-action {
   width: fit-content;
   min-height: 46px;
-  margin-top: 30px;
+  margin-top: 0;
   padding: 0 16px;
   display: inline-flex;
   align-items: center;
@@ -203,6 +203,48 @@
   font-size: 11px;
   font-weight: 800;
   text-decoration: none;
+}
+
+.record-hero__actions {
+  margin-top: 30px;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.record-hero__actions form {
+  display: flex;
+}
+
+.record-hero__actions button,
+.record-favorite-login {
+  min-height: 46px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(23, 88, 70, 0.28);
+  border-radius: 8px;
+  color: var(--green);
+  background: var(--surface);
+  font-size: 10px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.record-hero__actions button:hover,
+.record-hero__actions button.is-active,
+.record-favorite-login:hover {
+  border-color: var(--gold);
+  color: #785317;
+  background: #f8edcf;
+}
+
+.record-hero__actions button > span,
+.record-favorite-login > span {
+  color: var(--gold);
+  font-size: 18px;
 }
 
 .record-map-action:hover {
@@ -509,7 +551,7 @@
   }
 
   .record-header nav a {
-    width: 50%;
+    width: 33.333%;
     min-width: 0;
     border-top: 2px solid transparent;
     border-bottom: 0;
@@ -598,6 +640,24 @@
 
   .record-hero__content > p {
     font-size: 15px;
+  }
+
+  .record-hero__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .record-map-action,
+  .record-hero__actions form,
+  .record-hero__actions button,
+  .record-favorite-login {
+    width: 100%;
+  }
+
+  .record-map-action,
+  .record-hero__actions button,
+  .record-favorite-login {
+    justify-content: space-between;
   }
 
   .record-year {

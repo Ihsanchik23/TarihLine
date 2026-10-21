@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { RecordDetail } from "@/components/catalog/record-detail";
 import { getHistoryData } from "@/lib/history";
+import { createClient } from "@/lib/supabase/server";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -39,5 +40,12 @@ export default async function RecordPage({ params }: Props) {
   const result = await loadRecord(slug);
   if (!result) notFound();
 
-  return <RecordDetail record={result.record} related={result.related} />;
+  const supabase = await createClient();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
+  const bookmark = userId
+    ? await supabase.from("bookmarks").select("record_id").eq("user_id", userId).eq("record_id", result.record.id).maybeSingle()
+    : null;
+
+  return <RecordDetail record={result.record} related={result.related} isAuthenticated={Boolean(userId)} isBookmarked={Boolean(bookmark?.data)} />;
 }
