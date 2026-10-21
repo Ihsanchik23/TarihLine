@@ -144,7 +144,7 @@ function Icon({ name }: { name: "layers" | "event" | "person" | "fit" | "close" 
 }
 
 function isVisibleInYear(record: HistoryRecord, year: number) {
-  const end = record.endYear ?? MAX_YEAR;
+  const end = record.endYear ?? (record.type === "event" ? record.startYear : MAX_YEAR);
   return record.startYear <= year && end >= year;
 }
 
