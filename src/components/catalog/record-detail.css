@@ -951,3 +951,218 @@
     width: 100%;
   }
 }
+
+/* TarihLine editorial system */
+.record-header {
+  height: 64px;
+  padding: 0 28px;
+  border-color: rgba(24, 33, 29, 0.12);
+  background: rgba(255, 253, 248, 0.92);
+  backdrop-filter: blur(16px);
+}
+
+.record-brand > span {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+}
+
+.record-brand strong {
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+
+.record-page article {
+  max-width: var(--page-width);
+}
+
+.record-hero {
+  min-height: 460px;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  gap: 54px;
+  padding: 52px 0 48px;
+}
+
+.record-eyebrow {
+  margin-top: 44px;
+}
+
+.record-eyebrow i {
+  padding: 0 0 0 12px;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  color: #8b671f;
+  background: transparent;
+}
+
+.record-hero h1 {
+  font-size: clamp(48px, 6.3vw, 78px);
+  line-height: 0.96;
+}
+
+.record-hero__content > p {
+  font-size: 15px;
+}
+
+.record-map-action,
+.record-hero__actions button,
+.record-favorite-login {
+  border-radius: 7px;
+}
+
+.record-year,
+.record-year--event {
+  width: auto;
+  height: auto;
+  min-height: 118px;
+  padding: 12px 0 12px 28px;
+  place-content: center start;
+  justify-items: start;
+  border: 0;
+  border-left: 1px solid rgba(23, 88, 70, 0.3);
+  border-radius: 0;
+  color: var(--green);
+  background: transparent;
+}
+
+.record-year small {
+  text-align: left;
+}
+
+.record-year strong {
+  font-size: 48px;
+  letter-spacing: -0.06em;
+}
+
+.record-layout {
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 66px;
+  padding: 62px 0;
+}
+
+.record-section h2,
+.record-section-heading h2,
+.record-facts h2 {
+  font-size: 32px;
+}
+
+.record-section p {
+  font-size: 16px;
+  line-height: 1.72;
+}
+
+.record-section--accent > div {
+  padding: 22px 24px;
+  background: var(--green-faint);
+}
+
+.record-facts {
+  padding: 0 0 0 24px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.record-sources,
+.record-notes,
+.record-related {
+  padding: 58px 0;
+}
+
+.record-note-form,
+.record-notes__list article {
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.record-notes__list article {
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.record-related__grid {
+  grid-template-columns: 1fr;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.record-related__grid a {
+  min-height: 0;
+  padding: 25px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.record-related__grid a:hover {
+  padding-right: 18px;
+  padding-left: 18px;
+  border-color: var(--line);
+  background: var(--green-faint);
+  transform: none;
+}
+
+.record-related__grid strong {
+  font-size: 25px;
+}
+
+.record-no-sources,
+.record-notes__empty,
+.record-notes__login {
+  border-radius: 8px;
+  background: transparent;
+}
+
+@media (max-width: 860px) {
+  .record-year,
+  .record-year--event {
+    width: auto;
+    height: auto;
+  }
+
+  .record-facts {
+    padding: 22px 0 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .record-header {
+    height: 58px;
+    padding: 0 94px 0 12px;
+  }
+
+  .record-language {
+    position: absolute;
+    right: 10px;
+  }
+
+  .record-page article {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .record-hero h1 {
+    font-size: clamp(40px, 12vw, 54px);
+  }
+
+  .record-year,
+  .record-year--event {
+    min-height: 86px;
+    padding-left: 18px;
+  }
+
+  .record-year strong {
+    font-size: 36px;
+  }
+
+  .record-facts {
+    padding: 22px 0 0;
+  }
+}

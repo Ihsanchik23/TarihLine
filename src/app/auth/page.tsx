@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { PublicSidebar } from "@/components/public-sidebar";
 import { login, register } from "./actions";
 import "./auth.css";
 
@@ -22,7 +23,8 @@ export default async function AuthPage({ searchParams }: Props) {
   const params = await searchParams;
   const next = params.next?.startsWith("/") && !params.next.startsWith("//") ? params.next : "/profile";
 
-  return <main className="auth-page">
+  return <main className="auth-page has-public-sidebar">
+    <PublicSidebar active="profile" />
     <Link className="auth-brand" href="/"><span>T</span><div><strong>TarihLine</strong><small>Қазақстан · 1900–2000</small></div></Link>
     <section className="auth-intro">
       <span>Личный архив</span>

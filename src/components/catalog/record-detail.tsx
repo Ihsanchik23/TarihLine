@@ -50,6 +50,7 @@ const copy = {
 };
 
 const categoryLabels: Record<string, { ru: string; kk: string }> = {
+  history: { ru: "История", kk: "Тарих" },
   politics: { ru: "Политика", kk: "Саясат" },
   war: { ru: "Войны и конфликты", kk: "Соғыстар мен қақтығыстар" },
   society: { ru: "Общество", kk: "Қоғам" },

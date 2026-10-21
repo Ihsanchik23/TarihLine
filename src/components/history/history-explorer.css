@@ -1947,6 +1947,105 @@
   }
 }
 
+/* Unified TarihLine editorial system */
+.history-app .app-header {
+  border-color: rgba(24, 33, 29, 0.12);
+  background: rgba(255, 253, 248, 0.92);
+  backdrop-filter: blur(16px);
+}
+
+.history-app .app-brand__mark {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+}
+
+.history-app .app-brand strong {
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+
+.event-card,
+.territory-card {
+  border-radius: 8px;
+  box-shadow: 0 18px 45px rgba(24, 33, 29, 0.12);
+}
+
+.history-app .timeline-panel {
+  box-shadow: none;
+}
+
+.history-app .timeline-year-control {
+  background: rgba(255, 253, 248, 0.86);
+}
+
+.history-app .timeline-year-control button {
+  border-radius: 7px;
+}
+
+.comparison-app {
+  background: var(--paper);
+}
+
+.comparison-header {
+  min-height: 72px;
+  background: rgba(255, 253, 248, 0.92);
+  backdrop-filter: blur(16px);
+}
+
+.comparison-back,
+.comparison-toolbar button,
+.comparison-panel__selector select,
+.comparison-source,
+.comparison-relation {
+  border-radius: 7px;
+}
+
+.comparison-grid {
+  gap: 0;
+  max-width: var(--page-width);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.comparison-panel {
+  border-top: 0;
+  border-bottom: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.comparison-panel:first-child {
+  border-left: 0;
+}
+
+.comparison-panel:last-child {
+  border-right: 0;
+  border-left: 0;
+}
+
+.comparison-panel__content h2 {
+  font-size: clamp(24px, 2.2vw, 31px);
+}
+
+@media (max-width: 900px) {
+  .comparison-grid {
+    gap: 14px;
+    border: 0;
+  }
+
+  .comparison-panel {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 520px) {
+  .history-app .app-header {
+    padding-right: 88px;
+  }
+}
+
 /* Compact map workspace with persistent navigation. */
 .history-app.has-public-sidebar {
   grid-template-rows: 64px minmax(360px, 1fr) 104px;
@@ -2214,4 +2313,37 @@
   .history-app .timeline-panel {
     grid-template-columns: 108px minmax(0, 1fr);
   }
+}
+
+/* Final unified map overrides */
+.history-app .app-header {
+  border-color: rgba(24, 33, 29, 0.12);
+  background: rgba(255, 253, 248, 0.92);
+  backdrop-filter: blur(16px);
+}
+.history-app .app-brand__mark { width: 36px; height: 36px; font-size: 18px; }
+.history-app .app-brand strong { font-size: 18px; letter-spacing: -0.03em; }
+.event-card,
+.territory-card { border-radius: 8px; box-shadow: 0 18px 45px rgba(24, 33, 29, 0.12); }
+.history-app .timeline-panel { box-shadow: none; }
+.history-app .timeline-year-control { background: rgba(255, 253, 248, 0.86); }
+.history-app .timeline-year-control button { border-radius: 7px; }
+.comparison-app { background: var(--paper); }
+.comparison-header { min-height: 72px; background: rgba(255, 253, 248, 0.92); backdrop-filter: blur(16px); }
+.comparison-back,
+.comparison-toolbar button,
+.comparison-panel__selector select,
+.comparison-source,
+.comparison-relation { border-radius: 7px; }
+.comparison-grid { gap: 0; max-width: var(--page-width); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.comparison-panel { border-top: 0; border-bottom: 0; border-radius: 0; box-shadow: none; }
+.comparison-panel:first-child { border-left: 0; }
+.comparison-panel:last-child { border-right: 0; border-left: 0; }
+.comparison-panel__content h2 { font-size: clamp(24px, 2.2vw, 31px); }
+@media (max-width: 900px) {
+  .comparison-grid { gap: 14px; border: 0; }
+  .comparison-panel { border: 1px solid var(--line); border-radius: 8px; }
+}
+@media (max-width: 520px) {
+  .history-app .app-header { padding-right: 88px; }
 }
