@@ -401,6 +401,7 @@
 }
 
 .record-sources,
+.record-notes,
 .record-related {
   padding: 66px 0;
   border-bottom: 1px solid var(--line);
@@ -478,6 +479,219 @@
   color: var(--muted);
   font-size: 12px;
   text-align: center;
+}
+
+.record-notes__layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.7fr) minmax(0, 1.3fr);
+  align-items: start;
+  gap: 22px;
+}
+
+.record-note-form,
+.record-notes__list article {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 10px 32px rgba(24, 33, 29, 0.04);
+}
+
+.record-note-form {
+  display: grid;
+  gap: 15px;
+}
+
+.record-note-form h3,
+.record-notes__list h3,
+.record-notes__login h3 {
+  margin: 0;
+  color: var(--green-dark);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 25px;
+  font-weight: 500;
+}
+
+.record-note-form label,
+.record-notes__list details form label {
+  display: grid;
+  gap: 7px;
+}
+
+.record-note-form label > span,
+.record-notes__list details form label > span {
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.record-note-form input,
+.record-note-form textarea,
+.record-notes__list details input,
+.record-notes__list details textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #cfd4ce;
+  border-radius: 8px;
+  outline: 0;
+  color: var(--ink);
+  background: white;
+  font: inherit;
+  font-size: 12px;
+}
+
+.record-note-form input,
+.record-notes__list details input {
+  height: 43px;
+}
+
+.record-note-form textarea,
+.record-notes__list details textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.record-note-form input:focus,
+.record-note-form textarea:focus,
+.record-notes__list details input:focus,
+.record-notes__list details textarea:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(23, 88, 70, 0.1);
+}
+
+.record-note-form > button,
+.record-notes__list details form > button {
+  min-height: 43px;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  background: var(--green);
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.record-notes__list {
+  display: grid;
+  gap: 12px;
+}
+
+.record-notes__list article {
+  box-shadow: none;
+}
+
+.record-note__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.record-note__meta > span {
+  color: #9a691d;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.record-note__meta button {
+  padding: 0;
+  border: 0;
+  color: #9a4a38;
+  background: transparent;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.record-notes__list h3 {
+  margin-top: 16px;
+}
+
+.record-notes__list article > p {
+  margin: 10px 0 18px;
+  color: #55605b;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.record-notes__list details {
+  border-top: 1px solid var(--line);
+}
+
+.record-notes__list summary {
+  width: fit-content;
+  padding-top: 14px;
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.record-notes__list details form {
+  padding-top: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.record-notes__empty {
+  min-height: 190px;
+  padding: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed #bbc2bd;
+  border-radius: 14px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.record-notes__login {
+  min-height: 150px;
+  padding: 26px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  border: 1px dashed #b8c5bf;
+  border-radius: 14px;
+  background: rgba(255, 253, 248, 0.52);
+}
+
+.record-notes__login > span {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: white;
+  background: var(--green);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+}
+
+.record-notes__login p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.record-notes__login > a {
+  min-height: 42px;
+  padding: 0 15px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 8px;
+  color: white;
+  background: var(--green);
+  font-size: 10px;
+  font-weight: 800;
+  text-decoration: none;
 }
 
 .record-related__grid {
@@ -677,6 +891,7 @@
 
   .record-layout,
   .record-sources,
+  .record-notes,
   .record-related {
     padding: 46px 0;
   }
@@ -721,5 +936,18 @@
 
   .record-related__grid {
     grid-template-columns: 1fr;
+  }
+
+  .record-notes__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .record-notes__login {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .record-notes__login > a {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 }

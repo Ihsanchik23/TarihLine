@@ -43,9 +43,12 @@ export default async function RecordPage({ params }: Props) {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
-  const bookmark = userId
-    ? await supabase.from("bookmarks").select("record_id").eq("user_id", userId).eq("record_id", result.record.id).maybeSingle()
-    : null;
+  const [bookmark, notes] = userId
+    ? await Promise.all([
+      supabase.from("bookmarks").select("record_id").eq("user_id", userId).eq("record_id", result.record.id).maybeSingle(),
+      supabase.from("notes").select("id, title, content, created_at, updated_at").eq("user_id", userId).eq("record_id", result.record.id).order("updated_at", { ascending: false }),
+    ])
+    : [null, null];
 
-  return <RecordDetail record={result.record} related={result.related} isAuthenticated={Boolean(userId)} isBookmarked={Boolean(bookmark?.data)} />;
+  return <RecordDetail record={result.record} related={result.related} notes={notes?.data ?? []} isAuthenticated={Boolean(userId)} isBookmarked={Boolean(bookmark?.data)} />;
 }

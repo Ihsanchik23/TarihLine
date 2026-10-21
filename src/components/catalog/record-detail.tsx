@@ -2,13 +2,21 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { toggleBookmark } from "@/app/profile/actions";
+import { deleteNote, saveNote, toggleBookmark } from "@/app/profile/actions";
 import type { HistoryRecord, HistoryRelation, Language } from "@/lib/history-types";
 import "./record-detail.css";
 
 type RelatedRecord = {
   record: HistoryRecord;
   relation: HistoryRelation;
+};
+
+type PersonalNote = {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
 };
 
 const copy = {
@@ -20,6 +28,10 @@ const copy = {
     relatedLead: "События и личности, связанные с этим материалом.", mapAction: "Показать на карте",
     back: "Вернуться в каталог", openSource: "Открыть источник", noSources: "Источники пока не прикреплены",
     addFavorite: "Добавить в избранное", removeFavorite: "Убрать из избранного", loginFavorite: "Войти и сохранить",
+    notes: "Личные заметки", notesLead: "Ваши приватные записи к этому материалу видны только вам.",
+    newNote: "Новая заметка", noteTitle: "Название", noteContent: "Текст заметки", saveNote: "Сохранить заметку",
+    editNote: "Редактировать", updateNote: "Сохранить изменения", deleteNote: "Удалить", noNotes: "Заметок к этому материалу пока нет.",
+    loginNotes: "Войдите, чтобы вести личные заметки к историческим материалам.", loginAction: "Войти в аккаунт",
   },
   kk: {
     map: "Карта", catalog: "Каталог", profile: "Профиль", event: "Тарихи оқиға", person: "Тарихи тұлға",
@@ -29,6 +41,10 @@ const copy = {
     relatedLead: "Осы материалмен байланысты оқиғалар мен тұлғалар.", mapAction: "Картадан көрсету",
     back: "Каталогқа оралу", openSource: "Дереккөзді ашу", noSources: "Дереккөздер әзірге тіркелмеген",
     addFavorite: "Таңдаулыға қосу", removeFavorite: "Таңдаулыдан алып тастау", loginFavorite: "Кіру және сақтау",
+    notes: "Жеке жазбалар", notesLead: "Осы материалға қатысты жеке жазбаларыңыз тек сізге көрінеді.",
+    newNote: "Жаңа жазба", noteTitle: "Атауы", noteContent: "Жазба мәтіні", saveNote: "Жазбаны сақтау",
+    editNote: "Өңдеу", updateNote: "Өзгерістерді сақтау", deleteNote: "Жою", noNotes: "Бұл материалға жазбалар әзірге жоқ.",
+    loginNotes: "Тарихи материалдарға жеке жазба қалдыру үшін аккаунтқа кіріңіз.", loginAction: "Аккаунтқа кіру",
   },
 };
 
@@ -53,7 +69,7 @@ function mapYear(record: HistoryRecord) {
   return Math.min(2000, Math.max(1900, record.startYear));
 }
 
-export function RecordDetail({ record, related, isAuthenticated, isBookmarked }: { record: HistoryRecord; related: RelatedRecord[]; isAuthenticated: boolean; isBookmarked: boolean }) {
+export function RecordDetail({ record, related, notes, isAuthenticated, isBookmarked }: { record: HistoryRecord; related: RelatedRecord[]; notes: PersonalNote[]; isAuthenticated: boolean; isBookmarked: boolean }) {
   const [language, setLanguage] = useState<Language>("ru");
   const t = copy[language];
 
@@ -113,8 +129,27 @@ export function RecordDetail({ record, related, isAuthenticated, isBookmarked }:
         {record.sources.length ? <ol>{record.sources.map((source, index) => <li key={`${source.url}-${index}`}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{source.title}</strong><small>{source.publisher}</small></div><a href={source.url} target="_blank" rel="noreferrer">{t.openSource}<span aria-hidden="true">↗</span></a></li>)}</ol> : <p className="record-no-sources">{t.noSources}</p>}
       </section>
 
+      <section className="record-notes" id="notes">
+        <div className="record-section-heading"><span>04</span><div><h2>{t.notes}</h2><p>{t.notesLead}</p></div></div>
+        {isAuthenticated ? <div className="record-notes__layout">
+          <form className="record-note-form" action={saveNote}>
+            <h3>{t.newNote}</h3>
+            <input name="recordId" type="hidden" value={record.id} />
+            <input name="slug" type="hidden" value={record.slug} />
+            <label><span>{t.noteTitle}</span><input name="title" type="text" maxLength={120} required /></label>
+            <label><span>{t.noteContent}</span><textarea name="content" rows={7} maxLength={5000} required /></label>
+            <button type="submit">{t.saveNote}</button>
+          </form>
+          <div className="record-notes__list">{notes.length ? notes.map((note) => <article key={note.id}>
+            <div className="record-note__meta"><span>{new Date(note.updated_at).toLocaleDateString(language === "ru" ? "ru-RU" : "kk-KZ")}</span><form action={deleteNote}><input name="noteId" type="hidden" value={note.id} /><input name="slug" type="hidden" value={record.slug} /><button type="submit">{t.deleteNote}</button></form></div>
+            <h3>{note.title}</h3><p>{note.content}</p>
+            <details><summary>{t.editNote}</summary><form action={saveNote}><input name="noteId" type="hidden" value={note.id} /><input name="recordId" type="hidden" value={record.id} /><input name="slug" type="hidden" value={record.slug} /><label><span>{t.noteTitle}</span><input name="title" type="text" defaultValue={note.title} maxLength={120} required /></label><label><span>{t.noteContent}</span><textarea name="content" rows={6} defaultValue={note.content} maxLength={5000} required /></label><button type="submit">{t.updateNote}</button></form></details>
+          </article>) : <div className="record-notes__empty">{t.noNotes}</div>}</div>
+        </div> : <div className="record-notes__login"><span aria-hidden="true">✎</span><div><h3>{t.notes}</h3><p>{t.loginNotes}</p></div><Link href={`/auth?next=${encodeURIComponent(`/catalog/${record.slug}#notes`)}`}>{t.loginAction}</Link></div>}
+      </section>
+
       {related.length ? <section className="record-related">
-        <div className="record-section-heading"><span>04</span><div><h2>{t.related}</h2><p>{t.relatedLead}</p></div></div>
+        <div className="record-section-heading"><span>05</span><div><h2>{t.related}</h2><p>{t.relatedLead}</p></div></div>
         <div className="record-related__grid">{related.map(({ record: item, relation }) => <Link href={`/catalog/${item.slug}`} key={relation.id}><small>{relationLabels[relation.type]?.[language] ?? relation.type}</small><strong>{item.title[language]}</strong><p>{relation.explanation[language]}</p><span>{item.dateLabel[language]} · {categoryLabels[item.category]?.[language] ?? item.category}</span></Link>)}</div>
       </section> : null}
     </article>
