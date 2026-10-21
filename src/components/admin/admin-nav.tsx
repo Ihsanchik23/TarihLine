@@ -8,6 +8,7 @@ const links = [
   { href: "/admin/events", label: "События", number: "02" },
   { href: "/admin/people", label: "Личности", number: "03" },
   { href: "/admin/sources", label: "Источники", number: "04" },
+  { href: "/admin/maps", label: "Карта", number: "05" },
 ];
 
 export function AdminNav() {

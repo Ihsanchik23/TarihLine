@@ -71,7 +71,7 @@ export default async function AdminDashboardPage() {
         <span className="admin-kicker">Библиография</span>
         <h2>Управление источниками</h2>
         <p>Проверяйте ссылки, лицензии и использование одного источника в разных исторических материалах.</p>
-        <Link className="admin-primary-link" href="/admin/sources">Открыть источники</Link>
+        <Link className="admin-primary-link" href="/admin/maps">Управлять границами</Link>
       </section>
     </div>
   );
