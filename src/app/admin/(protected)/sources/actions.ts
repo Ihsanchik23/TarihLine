@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
+import { invalidateHistoryCache } from "@/lib/history-cache";
 import { createClient } from "@/lib/supabase/server";
 
 export type SourceActionState = { error: string | null };
@@ -41,6 +42,7 @@ export async function updateSource(_state: SourceActionState, data: FormData): P
   }).eq("id", sourceId);
   if (error) return { error: "Не удалось сохранить источник" };
   revalidatePath("/");
+  invalidateHistoryCache();
   revalidatePath("/admin");
   revalidatePath("/admin/sources");
   revalidatePath(`/admin/sources/${sourceId}`);

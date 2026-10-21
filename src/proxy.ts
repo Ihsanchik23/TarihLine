@@ -5,6 +5,9 @@ export async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/routes")) {
     return NextResponse.redirect(new URL("/", request.url));
   }
+  if (request.nextUrl.pathname === "/catalog") {
+    return NextResponse.next();
+  }
   return updateSession(request);
 }
 

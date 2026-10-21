@@ -1,6 +1,8 @@
+import { unstable_cache } from "next/cache";
 import type { HistoricalMapLayer, HistoryRecord, HistoryRelation } from "@/lib/history-types";
 import type { Tables } from "@/types/database";
-import { createClient } from "./supabase/server";
+import { HISTORY_CACHE_TAG } from "./history-cache";
+import { createPublicClient } from "./supabase/public";
 
 type HistoricalRecordRow = Tables<"historical_records">;
 type EventDetailRow = Tables<"event_details">;
@@ -11,7 +13,7 @@ type RecordSourceRow = Tables<"record_sources">;
 type SourceRow = Tables<"sources">;
 type RelationRow = Tables<"relations">;
 type BorderLayerRow = Tables<"border_layers">;
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+type SupabasePublicClient = ReturnType<typeof createPublicClient>;
 
 export type HistoryData = {
   records: HistoryRecord[];
@@ -19,15 +21,15 @@ export type HistoryData = {
   mapLayers: HistoricalMapLayer[];
 };
 
-function resolveGeojsonUrl(client: SupabaseServerClient, path: string) {
+function resolveGeojsonUrl(client: SupabasePublicClient, path: string) {
   if (/^https?:\/\//.test(path) || path.startsWith("/")) return path;
   return client.storage.from("historical-maps").getPublicUrl(path).data.publicUrl;
 }
 
-async function loadMapLayers(client: SupabaseServerClient) {
+async function loadMapLayers(client: SupabasePublicClient) {
   const layersResult = await client
     .from("border_layers")
-    .select("*")
+    .select("id,title_ru,title_kk,area_label_ru,area_label_kk,snapshot_year,valid_from,valid_to,change_years,change_summary,geojson_path,administrative_level,coverage,reconstruction,license,priority,source_id")
     .eq("status", "published")
     .order("priority", { ascending: false });
 
@@ -35,7 +37,7 @@ async function loadMapLayers(client: SupabaseServerClient) {
 
   const layers = layersResult.data as BorderLayerRow[];
   const sourceIds = [...new Set(layers.map((layer) => layer.source_id))];
-  const sourcesResult = await client.from("sources").select("*").in("id", sourceIds);
+  const sourcesResult = await client.from("sources").select("id,title,url,publisher").in("id", sourceIds);
   if (sourcesResult.error) return [];
 
   const sourceById = new Map(
@@ -70,13 +72,23 @@ async function loadMapLayers(client: SupabaseServerClient) {
   });
 }
 
-export async function getHistoricalMapLayers() {
+async function loadHistoricalMapLayers() {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     return await loadMapLayers(supabase);
   } catch {
     return [];
   }
+}
+
+const getCachedHistoricalMapLayers = unstable_cache(
+  loadHistoricalMapLayers,
+  ["tarihline-map-layers-v1"],
+  { revalidate: 3600, tags: [HISTORY_CACHE_TAG] },
+);
+
+export async function getHistoricalMapLayers() {
+  return getCachedHistoricalMapLayers();
 }
 
 function eventDateLabel(detail: EventDetailRow) {
@@ -117,42 +129,42 @@ function personDateLabel(detail: PersonDetailRow) {
   return { ru: value, kk: value };
 }
 
-export async function getHistoryData(): Promise<HistoryData> {
+async function loadHistoryData(): Promise<HistoryData> {
   try {
-    const supabase = await createClient();
-    const mapLayers = await loadMapLayers(supabase);
+    const supabase = createPublicClient();
+    const mapLayersPromise = loadMapLayers(supabase);
     const recordsResult = await supabase
       .from("historical_records")
-      .select("*")
+      .select("id,slug,record_type,title_ru,title_kk,summary_ru,summary_kk,description_ru,description_kk,category")
       .eq("status", "published")
       .order("published_at", { ascending: true });
 
     if (recordsResult.error || !recordsResult.data?.length) {
-      return { records: [], relations: [], mapLayers };
+      return { records: [], relations: [], mapLayers: await mapLayersPromise };
     }
 
     const records = recordsResult.data as HistoricalRecordRow[];
     const recordIds = records.map((record) => record.id);
 
     const [eventsResult, peopleResult, markersResult, linksResult, relationsResult] = await Promise.all([
-      supabase.from("event_details").select("*").in("record_id", recordIds),
-      supabase.from("person_details").select("*").in("record_id", recordIds),
+      supabase.from("event_details").select("record_id,start_date,start_year,end_year,significance_ru,significance_kk").in("record_id", recordIds),
+      supabase.from("person_details").select("record_id,birth_year,death_year,biography_ru,biography_kk").in("record_id", recordIds),
       supabase
         .from("map_markers")
-        .select("*")
+        .select("record_id,longitude,latitude,location_id,is_primary,title_ru,title_kk")
         .in("record_id", recordIds)
         .eq("status", "published")
         .order("is_primary", { ascending: false }),
-      supabase.from("record_sources").select("*").in("record_id", recordIds),
+      supabase.from("record_sources").select("record_id,source_id").in("record_id", recordIds),
       supabase
         .from("relations")
-        .select("*")
+        .select("id,from_record_id,to_record_id,relation_type,explanation_ru,explanation_kk,from_year,to_year")
         .eq("status", "published")
         .or(`from_record_id.in.(${recordIds.join(",")}),to_record_id.in.(${recordIds.join(",")})`),
     ]);
 
     if (eventsResult.error || peopleResult.error || markersResult.error || linksResult.error || relationsResult.error) {
-      return { records: [], relations: [], mapLayers };
+      return { records: [], relations: [], mapLayers: await mapLayersPromise };
     }
 
     const events = (eventsResult.data ?? []) as EventDetailRow[];
@@ -165,15 +177,15 @@ export async function getHistoryData(): Promise<HistoryData> {
 
     const [locationsResult, sourcesResult] = await Promise.all([
       locationIds.length
-        ? supabase.from("locations").select("*").in("id", locationIds)
+        ? supabase.from("locations").select("id,longitude,latitude,historical_name_ru,historical_name_kk,name_ru,name_kk").in("id", locationIds)
         : Promise.resolve({ data: [] as LocationRow[], error: null }),
       sourceIds.length
-        ? supabase.from("sources").select("*").in("id", sourceIds)
+        ? supabase.from("sources").select("id,title,url,publisher").in("id", sourceIds)
         : Promise.resolve({ data: [] as SourceRow[], error: null }),
     ]);
 
     if (locationsResult.error || sourcesResult.error) {
-      return { records: [], relations: [], mapLayers };
+      return { records: [], relations: [], mapLayers: await mapLayersPromise };
     }
 
     const locations = (locationsResult.data ?? []) as LocationRow[];
@@ -183,6 +195,13 @@ export async function getHistoryData(): Promise<HistoryData> {
     const markerByRecord = new Map<string, MarkerRow>();
     const locationById = new Map(locations.map((location) => [location.id, location]));
     const sourceById = new Map(sources.map((source) => [source.id, source]));
+    const linksByRecord = new Map<string, RecordSourceRow[]>();
+
+    links.forEach((link) => {
+      const recordLinks = linksByRecord.get(link.record_id) ?? [];
+      recordLinks.push(link);
+      linksByRecord.set(link.record_id, recordLinks);
+    });
 
     markers.forEach((marker) => {
       if (!markerByRecord.has(marker.record_id) || marker.is_primary) {
@@ -194,8 +213,7 @@ export async function getHistoryData(): Promise<HistoryData> {
       const marker = markerByRecord.get(record.id);
       const location = marker?.location_id ? locationById.get(marker.location_id) : null;
       const coordinates = resolveCoordinates(marker, location ?? null);
-      const recordSources = links
-        .filter((link) => link.record_id === record.id)
+      const recordSources = (linksByRecord.get(record.id) ?? [])
         .flatMap((link) => {
           const source = sourceById.get(link.source_id);
           return source?.url
@@ -266,10 +284,21 @@ export async function getHistoryData(): Promise<HistoryData> {
         toYear: relation.to_year,
       }));
 
+    const mapLayers = await mapLayersPromise;
     return mapped.length
       ? { records: mapped, relations: mappedRelations, mapLayers }
       : { records: [], relations: [], mapLayers };
   } catch {
     return { records: [], relations: [], mapLayers: [] };
   }
+}
+
+const getCachedHistoryData = unstable_cache(
+  loadHistoryData,
+  ["tarihline-history-data-v1"],
+  { revalidate: 3600, tags: [HISTORY_CACHE_TAG] },
+);
+
+export async function getHistoryData(): Promise<HistoryData> {
+  return getCachedHistoryData();
 }

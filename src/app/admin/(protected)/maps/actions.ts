@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import { validateGeoJsonText } from "@/lib/geojson";
+import { invalidateHistoryCache } from "@/lib/history-cache";
 import { createClient } from "@/lib/supabase/server";
 
 export type MapLayerActionState = {
@@ -116,6 +117,7 @@ export async function createMapLayer(data: FormData): Promise<MapLayerActionStat
   }
 
   revalidatePath("/");
+  invalidateHistoryCache();
   revalidatePath("/admin");
   revalidatePath("/admin/maps");
   return { error: null, layerId: layer.id };
@@ -148,6 +150,7 @@ export async function updateMapLayer(_state: MapLayerActionState, data: FormData
   if (error) return { error: "Не удалось сохранить слой" };
 
   revalidatePath("/");
+  invalidateHistoryCache();
   revalidatePath("/admin");
   revalidatePath("/admin/maps");
   revalidatePath(`/admin/maps/${layerId}`);
@@ -173,6 +176,7 @@ export async function changeMapLayerStatus(_state: MapLayerActionState, data: Fo
   const { data: updated, error } = await supabase.from("border_layers").update({ status: target }).eq("id", layerId).eq("status", layer.status).select("id").maybeSingle();
   if (error || !updated) return { error: "Не удалось изменить статус слоя" };
   revalidatePath("/");
+  invalidateHistoryCache();
   revalidatePath("/admin");
   revalidatePath("/admin/maps");
   revalidatePath(`/admin/maps/${layerId}`);
@@ -191,6 +195,7 @@ export async function deleteMapLayer(_state: MapLayerActionState, data: FormData
   if (error) return { error: "Не удалось удалить слой" };
   await supabase.storage.from("historical-maps").remove([layer.geojson_path]);
   revalidatePath("/");
+  invalidateHistoryCache();
   revalidatePath("/admin");
   revalidatePath("/admin/maps");
   redirect("/admin/maps?deleted=1");

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
+import { invalidateHistoryCache } from "@/lib/history-cache";
 import { createClient } from "@/lib/supabase/server";
 
 export type PersonFormState = { error: string | null };
@@ -146,6 +147,7 @@ export async function changePersonStatus(_state: PersonWorkflowState, data: Form
     return { error: "Не удалось изменить статус личности" };
   }
   revalidatePath("/");
+  invalidateHistoryCache();
   revalidatePath("/admin");
   revalidatePath("/admin/people");
   revalidatePath(`/admin/people/${recordId}`);

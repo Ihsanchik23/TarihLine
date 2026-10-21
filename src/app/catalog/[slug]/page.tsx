@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { RecordDetail } from "@/components/catalog/record-detail";
 import { getHistoryData } from "@/lib/history";
@@ -8,7 +9,7 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
-async function loadRecord(slug: string) {
+const loadRecord = cache(async (slug: string) => {
   const data = await getHistoryData();
   const record = data.records.find((item) => item.slug === slug);
   if (!record) return null;
@@ -21,7 +22,7 @@ async function loadRecord(slug: string) {
   });
 
   return { record, related };
-}
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

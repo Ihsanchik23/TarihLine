@@ -3,6 +3,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin";
+import { invalidateHistoryCache } from "@/lib/history-cache";
 import { parseCsv, type CsvRow } from "@/lib/csv";
 import { createClient } from "@/lib/supabase/server";
 
@@ -211,6 +212,7 @@ export async function importCsv(
     .eq("id", job.id);
 
   revalidatePath("/");
+  invalidateHistoryCache();
   revalidatePath("/admin");
   revalidatePath("/admin/events");
   revalidatePath("/admin/people");

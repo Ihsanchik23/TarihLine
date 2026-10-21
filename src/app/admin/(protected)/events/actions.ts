@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
+import { invalidateHistoryCache } from "@/lib/history-cache";
 import { createClient } from "@/lib/supabase/server";
 
 export type EventFormState = {
@@ -270,6 +271,7 @@ export async function changeEventStatus(
   }
 
   revalidatePath("/");
+  invalidateHistoryCache();
   revalidatePath("/admin");
   revalidatePath("/admin/events");
   revalidatePath(`/admin/events/${recordId}`);
