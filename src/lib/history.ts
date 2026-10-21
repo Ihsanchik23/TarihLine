@@ -33,12 +33,13 @@ async function loadMapLayers(client: SupabasePublicClient) {
     .eq("status", "published")
     .order("priority", { ascending: false });
 
-  if (layersResult.error || !layersResult.data?.length) return [];
+  if (layersResult.error) throw layersResult.error;
+  if (!layersResult.data?.length) return [];
 
   const layers = layersResult.data as BorderLayerRow[];
   const sourceIds = [...new Set(layers.map((layer) => layer.source_id))];
   const sourcesResult = await client.from("sources").select("id,title,url,publisher").in("id", sourceIds);
-  if (sourcesResult.error) return [];
+  if (sourcesResult.error) throw sourcesResult.error;
 
   const sourceById = new Map(
     ((sourcesResult.data ?? []) as SourceRow[]).map((source) => [source.id, source]),
@@ -73,12 +74,8 @@ async function loadMapLayers(client: SupabasePublicClient) {
 }
 
 async function loadHistoricalMapLayers() {
-  try {
-    const supabase = createPublicClient();
-    return await loadMapLayers(supabase);
-  } catch {
-    return [];
-  }
+  const supabase = createPublicClient();
+  return loadMapLayers(supabase);
 }
 
 const getCachedHistoricalMapLayers = unstable_cache(
@@ -88,7 +85,11 @@ const getCachedHistoricalMapLayers = unstable_cache(
 );
 
 export async function getHistoricalMapLayers() {
-  return getCachedHistoricalMapLayers();
+  try {
+    return await getCachedHistoricalMapLayers();
+  } catch {
+    return [];
+  }
 }
 
 function eventDateLabel(detail: EventDetailRow) {
@@ -130,8 +131,7 @@ function personDateLabel(detail: PersonDetailRow) {
 }
 
 async function loadHistoryData(): Promise<HistoryData> {
-  try {
-    const supabase = createPublicClient();
+  const supabase = createPublicClient();
     const mapLayersPromise = loadMapLayers(supabase);
     const recordsResult = await supabase
       .from("historical_records")
@@ -285,12 +285,9 @@ async function loadHistoryData(): Promise<HistoryData> {
       }));
 
     const mapLayers = await mapLayersPromise;
-    return mapped.length
-      ? { records: mapped, relations: mappedRelations, mapLayers }
-      : { records: [], relations: [], mapLayers };
-  } catch {
-    return { records: [], relations: [], mapLayers: [] };
-  }
+  return mapped.length
+    ? { records: mapped, relations: mappedRelations, mapLayers }
+    : { records: [], relations: [], mapLayers };
 }
 
 const getCachedHistoryData = unstable_cache(
@@ -300,5 +297,9 @@ const getCachedHistoryData = unstable_cache(
 );
 
 export async function getHistoryData(): Promise<HistoryData> {
-  return getCachedHistoryData();
+  try {
+    return await getCachedHistoryData();
+  } catch {
+    return { records: [], relations: [], mapLayers: [] };
+  }
 }
