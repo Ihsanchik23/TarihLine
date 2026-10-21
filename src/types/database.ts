@@ -911,6 +911,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      import_historical_record: {
+        Args: {
+          p_data: Json
+        }
+        Returns: string
+      }
       create_person_draft: {
         Args: {
           p_biography_kk: string

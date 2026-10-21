@@ -41,7 +41,7 @@ export default async function AdminDashboardPage() {
         <div>
           <span className="admin-kicker">Панель управления</span>
           <h1>Контент TarihLine</h1>
-          <p>Данные на карте появляются только после проверки и публикации.</p>
+          <p>Материалы можно добавлять вручную или массово из CSV.</p>
         </div>
         <Link className="admin-map-link" href="/">Открыть карту</Link>
       </header>
@@ -68,10 +68,10 @@ export default async function AdminDashboardPage() {
       </section>
 
       <section className="admin-next-section">
-        <span className="admin-kicker">Библиография</span>
-        <h2>Управление источниками</h2>
-        <p>Проверяйте ссылки, лицензии и использование одного источника в разных исторических материалах.</p>
-        <Link className="admin-primary-link" href="/admin/maps">Управлять границами</Link>
+        <span className="admin-kicker">Быстрое наполнение</span>
+        <h2>Импорт событий и личностей</h2>
+        <p>Загрузите CSV с названиями, описаниями, годами и координатами. Записи сразу появятся на карте.</p>
+        <Link className="admin-primary-link" href="/admin/import">Открыть импорт</Link>
       </section>
     </div>
   );
