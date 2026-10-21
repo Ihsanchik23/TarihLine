@@ -63,7 +63,7 @@ const copy = {
     territoryPeriod: "Период на карте",
     territorySource: "Источник геометрии",
     territoryArticle: "Справочная статья",
-    territoryNaming: "Название приводится в форме исходного набора данных.",
+    territoryNaming: "Название локализовано по Wikidata и редакционным правкам TarihLine.",
     ownMap: "Базовая карта",
     historicalBorders: "Исторические границы",
     bordersPending: "Проверенные границы для этого года ещё не опубликованы",
@@ -106,7 +106,7 @@ const copy = {
     territoryPeriod: "Картадағы кезең",
     territorySource: "Геометрия дереккөзі",
     territoryArticle: "Анықтамалық мақала",
-    territoryNaming: "Атауы бастапқы деректер жинағындағы нұсқада берілген.",
+    territoryNaming: "Атау Wikidata деректері және TarihLine редакциялық түзетулері бойынша берілген.",
     ownMap: "Негізгі карта",
     historicalBorders: "Тарихи шекаралар",
     bordersPending: "Бұл жылға арналған тексерілген шекаралар әлі жарияланбаған",
@@ -163,9 +163,10 @@ type Territory = {
   layer: HistoricalMapLayer;
 };
 
-function territoryFromFeature(feature: MapGeoJSONFeature, layer: HistoricalMapLayer): Territory | null {
+function territoryFromFeature(feature: MapGeoJSONFeature, layer: HistoricalMapLayer, language: Language): Territory | null {
   if (feature.id === undefined) return null;
-  const name = typeof feature.properties.name === "string" ? feature.properties.name : "";
+  const localizedName = language === "kk" ? feature.properties.name_kk : feature.properties.name_ru;
+  const name = typeof localizedName === "string" && localizedName ? localizedName : typeof feature.properties.name === "string" ? feature.properties.name : "";
   const validFrom = Number(feature.properties.valid_from);
   const validTo = Number(feature.properties.valid_to);
   if (!name || !Number.isFinite(validFrom) || !Number.isFinite(validTo)) return null;
@@ -303,7 +304,7 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
       const feature = map?.queryRenderedFeatures(event.point, { layers: layerIds })[0];
       if (!feature) return null;
       const layer = layersById.get(feature.layer.id);
-      return layer ? territoryFromFeature(feature, layer) : null;
+      return layer ? territoryFromFeature(feature, layer, language) : null;
     }
 
     function onMouseMove(event: MapMouseEvent) {
@@ -340,7 +341,7 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
       map.off("click", onClick);
       clearHovered();
     };
-  }, [activeMapLayers, mapReady, year]);
+  }, [activeMapLayers, language, mapReady, year]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
