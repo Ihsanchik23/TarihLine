@@ -47,6 +47,7 @@ export type HistoricalMapLayer = {
   validFrom: number;
   validTo: number;
   changeYears: number[];
+  changeSummary: Record<string, { appeared: number; disappeared: number; changed: number }>;
   geojsonUrl: string;
   administrativeLevel: string;
   coverage: string;

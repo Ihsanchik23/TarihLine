@@ -2,6 +2,7 @@ type ValidationResult = {
   error: string | null;
   featureCount: number;
   changeYears: number[];
+  changeSummary: Record<string, { appeared: number; disappeared: number; changed: number }>;
 };
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -57,9 +58,35 @@ function featureChangeYears(value: unknown) {
   return years;
 }
 
+function featureName(value: unknown) {
+  if (!isObject(value) || !isObject(value.properties)) return "";
+  return typeof value.properties.name === "string" ? value.properties.name.trim() : "";
+}
+
+function changeSummary(features: unknown[], years: number[]) {
+  const summary: ValidationResult["changeSummary"] = {};
+  for (const year of years) {
+    const before = new Set<string>();
+    const after = new Set<string>();
+    for (const feature of features) {
+      if (!isObject(feature) || !isObject(feature.properties)) continue;
+      const name = featureName(feature);
+      if (!name) continue;
+      if (feature.properties.valid_from === year) after.add(name);
+      if (typeof feature.properties.valid_to === "number" && feature.properties.valid_to + 1 === year) before.add(name);
+    }
+    summary[year] = {
+      appeared: [...after].filter((name) => !before.has(name)).length,
+      disappeared: [...before].filter((name) => !after.has(name)).length,
+      changed: [...after].filter((name) => before.has(name)).length,
+    };
+  }
+  return summary;
+}
+
 function result(featureCount: number, features: unknown[]): ValidationResult {
   const changeYears = [...new Set(features.flatMap(featureChangeYears))].sort((first, second) => first - second);
-  return { error: null, featureCount, changeYears };
+  return { error: null, featureCount, changeYears, changeSummary: changeSummary(features, changeYears) };
 }
 
 export function validateGeoJsonText(text: string): ValidationResult {
@@ -67,22 +94,22 @@ export function validateGeoJsonText(text: string): ValidationResult {
   try {
     value = JSON.parse(text);
   } catch {
-    return { error: "Файл содержит некорректный JSON", featureCount: 0, changeYears: [] };
+    return { error: "Файл содержит некорректный JSON", featureCount: 0, changeYears: [], changeSummary: {} };
   }
 
-  if (!isObject(value)) return { error: "GeoJSON должен быть объектом", featureCount: 0, changeYears: [] };
+  if (!isObject(value)) return { error: "GeoJSON должен быть объектом", featureCount: 0, changeYears: [], changeSummary: {} };
   if (value.type === "Feature") {
     return validFeature(value)
       ? result(1, [value])
-      : { error: "Слой должен содержать корректную геометрию Polygon или MultiPolygon", featureCount: 0, changeYears: [] };
+      : { error: "Слой должен содержать корректную геометрию Polygon или MultiPolygon", featureCount: 0, changeYears: [], changeSummary: {} };
   }
   if (value.type !== "FeatureCollection" || !Array.isArray(value.features)) {
-    return { error: "Ожидается FeatureCollection с полигонами границ", featureCount: 0, changeYears: [] };
+    return { error: "Ожидается FeatureCollection с полигонами границ", featureCount: 0, changeYears: [], changeSummary: {} };
   }
-  if (!value.features.length) return { error: "В GeoJSON нет объектов", featureCount: 0, changeYears: [] };
-  if (value.features.length > 50000) return { error: "В одном слое допускается не более 50 000 объектов", featureCount: 0, changeYears: [] };
+  if (!value.features.length) return { error: "В GeoJSON нет объектов", featureCount: 0, changeYears: [], changeSummary: {} };
+  if (value.features.length > 50000) return { error: "В одном слое допускается не более 50 000 объектов", featureCount: 0, changeYears: [], changeSummary: {} };
   if (!value.features.every(validFeature)) {
-    return { error: "Все объекты должны содержать корректную геометрию Polygon или MultiPolygon", featureCount: 0, changeYears: [] };
+    return { error: "Все объекты должны содержать корректную геометрию Polygon или MultiPolygon", featureCount: 0, changeYears: [], changeSummary: {} };
   }
   return result(value.features.length, value.features);
 }

@@ -43,6 +43,7 @@ export type Database = {
           administrative_level: string
           area_label_kk: string
           area_label_ru: string
+          change_summary: Json
           change_years: number[]
           coverage: string
           created_at: string
@@ -65,6 +66,7 @@ export type Database = {
           administrative_level: string
           area_label_kk: string
           area_label_ru: string
+          change_summary?: Json
           change_years?: number[]
           coverage?: string
           created_at?: string
@@ -87,6 +89,7 @@ export type Database = {
           administrative_level?: string
           area_label_kk?: string
           area_label_ru?: string
+          change_summary?: Json
           change_years?: number[]
           coverage?: string
           created_at?: string

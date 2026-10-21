@@ -61,11 +61,11 @@ function validateFields(values: LayerFields) {
 }
 
 async function validateStoredGeoJson(path: string) {
-  if (!/^admin\/[0-9a-f-]{36}\.geojson$/.test(path)) return { error: "Некорректный путь файла", featureCount: 0, changeYears: [] };
+  if (!/^admin\/[0-9a-f-]{36}\.geojson$/.test(path)) return { error: "Некорректный путь файла", featureCount: 0, changeYears: [], changeSummary: {} };
   const supabase = await createClient();
   const { data, error } = await supabase.storage.from("historical-maps").download(path);
-  if (error || !data) return { error: "Загруженный файл не найден", featureCount: 0, changeYears: [] };
-  if (data.size > 10485760) return { error: "Размер GeoJSON превышает 10 МБ", featureCount: 0, changeYears: [] };
+  if (error || !data) return { error: "Загруженный файл не найден", featureCount: 0, changeYears: [], changeSummary: {} };
+  if (data.size > 10485760) return { error: "Размер GeoJSON превышает 10 МБ", featureCount: 0, changeYears: [], changeSummary: {} };
   return validateGeoJsonText(await data.text());
 }
 
@@ -106,6 +106,7 @@ export async function createMapLayer(data: FormData): Promise<MapLayerActionStat
     priority: values.priority,
     reconstruction: values.reconstruction,
     change_years: changeYearsForPeriod(geojson.changeYears, values.validFrom, values.validTo),
+    change_summary: geojson.changeSummary,
     geojson_path: path,
     status: "draft",
   }).select("id").single();

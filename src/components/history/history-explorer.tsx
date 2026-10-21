@@ -69,6 +69,11 @@ const copy = {
     historicalBorders: "Исторические границы",
     bordersPending: "Проверенные границы для этого года ещё не опубликованы",
     reconstruction: "Реконструкция",
+    changesTitle: "Что изменилось",
+    changesNote: "Красным показаны прежние территории, зелёным — новые.",
+    appeared: "Появились",
+    disappeared: "Исчезли",
+    changed: "Изменили границы",
   },
   kk: {
     map: "Карта",
@@ -113,6 +118,11 @@ const copy = {
     historicalBorders: "Тарихи шекаралар",
     bordersPending: "Бұл жылға арналған тексерілген шекаралар әлі жарияланбаған",
     reconstruction: "Реконструкция",
+    changesTitle: "Не өзгерді",
+    changesNote: "Бұрынғы аумақтар қызылмен, жаңалары жасылмен көрсетілген.",
+    appeared: "Пайда болды",
+    disappeared: "Жойылды",
+    changed: "Шекарасы өзгерді",
   },
 };
 
@@ -233,6 +243,21 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
   );
   const previousChangeYear = [...mapChangeYears].reverse().find((value) => value < year) ?? null;
   const nextChangeYear = mapChangeYears.find((value) => value > year) ?? null;
+  const yearChangeSummary = useMemo(
+    () => activeMapLayers.reduce((summary, layer) => {
+      const change = layer.changeSummary[String(year)];
+      if (!change) return summary;
+      return {
+        appeared: summary.appeared + change.appeared,
+        disappeared: summary.disappeared + change.disappeared,
+        changed: summary.changed + change.changed,
+      };
+    }, { appeared: 0, disappeared: 0, changed: 0 }),
+    [activeMapLayers, year],
+  );
+  const showYearChanges = previousChangeYear !== null
+    && mapChangeYears.includes(year)
+    && yearChangeSummary.appeared + yearChangeSummary.disappeared + yearChangeSummary.changed > 0;
 
   useEffect(() => {
     const stored = window.localStorage.getItem("tarihline-language");
@@ -581,6 +606,15 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
                 : t.bordersPending}
             </span>
           </div>
+          {showYearChanges && <section className="map-change-summary" aria-live="polite">
+            <div className="map-change-summary__heading"><span>{t.changesTitle}</span><strong>{year}</strong></div>
+            <div className="map-change-summary__counts">
+              <span className="is-appeared"><strong>{yearChangeSummary.appeared}</strong>{t.appeared}</span>
+              <span className="is-disappeared"><strong>{yearChangeSummary.disappeared}</strong>{t.disappeared}</span>
+              <span className="is-changed"><strong>{yearChangeSummary.changed}</strong>{t.changed}</span>
+            </div>
+            <p>{t.changesNote}</p>
+          </section>}
           <div className="map-hint">{t.zoomHint} {t.territoryHint}</div>
 
           {hoveredTerritory && !selectedTerritory && <div className="territory-hover" aria-live="polite"><strong>{hoveredTerritory.name}</strong><span>{hoveredTerritory.validFrom}–{hoveredTerritory.validTo}</span></div>}

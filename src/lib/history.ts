@@ -54,6 +54,7 @@ async function loadMapLayers(client: SupabaseServerClient) {
       validFrom: layer.valid_from,
       validTo: layer.valid_to,
       changeYears: layer.change_years.length ? layer.change_years : [layer.valid_from, layer.valid_to],
+      changeSummary: layer.change_summary as HistoricalMapLayer["changeSummary"],
       geojsonUrl: resolveGeojsonUrl(client, layer.geojson_path),
       administrativeLevel: layer.administrative_level,
       coverage: layer.coverage,

@@ -559,6 +559,86 @@
   text-transform: uppercase;
 }
 
+.map-change-summary {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  z-index: 4;
+  display: grid;
+  width: min(340px, calc(100% - 40px));
+  gap: 10px;
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 10px;
+  background: rgba(255, 253, 248, 0.9);
+  box-shadow: 0 7px 24px rgba(24, 33, 29, 0.11);
+  backdrop-filter: blur(10px);
+}
+
+.map-change-summary__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.map-change-summary__heading span {
+  color: var(--green);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.map-change-summary__heading strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+}
+
+.map-change-summary__counts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.map-change-summary__counts span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px;
+  border-radius: 7px;
+  color: var(--muted);
+  background: #f1f1ec;
+  font-size: 8px;
+  line-height: 1.2;
+}
+
+.map-change-summary__counts strong {
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 19px;
+  line-height: 1;
+}
+
+.map-change-summary__counts .is-appeared {
+  background: #e4f3e9;
+}
+
+.map-change-summary__counts .is-disappeared {
+  background: #f7e5e2;
+}
+
+.map-change-summary__counts .is-changed {
+  background: #f8efd6;
+}
+
+.map-change-summary p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
 .map-layer-status span {
   font-size: 9px;
   line-height: 1.35;
@@ -1436,6 +1516,11 @@
     display: none;
   }
 
+  .map-change-summary {
+    right: 12px;
+    width: min(290px, calc(100% - 120px));
+  }
+
   .territory-card {
     top: auto;
     right: 12px;
@@ -1568,6 +1653,13 @@
     right: 12px;
     left: 12px;
     max-width: 270px;
+  }
+
+  .map-change-summary {
+    top: 154px;
+    right: 12px;
+    left: 12px;
+    width: auto;
   }
 
   .territory-card h2 {
