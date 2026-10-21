@@ -950,6 +950,13 @@ export type Database = {
         }
         Returns: string
       }
+      move_route_item: {
+        Args: {
+          p_direction: string
+          p_item_id: string
+        }
+        Returns: boolean
+      }
       set_event_status: {
         Args: {
           p_record_id: string

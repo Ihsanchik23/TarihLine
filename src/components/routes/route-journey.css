@@ -1,0 +1,370 @@
+.route-journey {
+  display: grid;
+  grid-template-rows: 78px minmax(0, 1fr);
+  height: 100dvh;
+  min-height: 680px;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+.route-journey > header {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  padding: 0 26px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.route-journey-brand {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.route-journey-brand span {
+  display: grid;
+  width: 37px;
+  height: 37px;
+  place-items: center;
+  border-radius: 50%;
+  color: white;
+  background: var(--green);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.route-journey-brand strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+}
+
+.route-journey > header > div {
+  text-align: center;
+}
+
+.route-journey > header small {
+  color: #a46f16;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.route-journey > header h1 {
+  margin: 4px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.route-journey > header > a:last-child {
+  justify-self: end;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.route-journey-workspace {
+  display: grid;
+  grid-template-columns: 390px minmax(0, 1fr);
+  min-height: 0;
+}
+
+.route-journey-workspace > aside {
+  position: relative;
+  z-index: 2;
+  min-height: 0;
+  padding: 28px;
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 10px 0 35px rgba(20, 45, 37, 0.06);
+}
+
+.route-journey-progress > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.route-journey-progress > div {
+  height: 4px;
+  margin-top: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dfe3df;
+}
+
+.route-journey-progress i {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transition: width 260ms ease;
+}
+
+.route-journey-year {
+  margin-top: 28px;
+  color: #a46f16;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 46px;
+  line-height: 1;
+}
+
+.route-journey-workspace aside > h2 {
+  margin: 12px 0 10px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1.08;
+}
+
+.route-journey-workspace aside > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.route-journey dl {
+  display: grid;
+  gap: 10px;
+  margin: 23px 0;
+}
+
+.route-journey dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--line);
+}
+
+.route-journey dt {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.route-journey dd {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.route-journey blockquote {
+  margin: 0 0 20px;
+  padding: 15px;
+  border-left: 3px solid var(--gold);
+  background: #f5f0e2;
+}
+
+.route-journey blockquote span {
+  color: #8b651d;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.route-journey blockquote p {
+  margin: 7px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.route-journey-record {
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.route-journey-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin: 24px 0;
+}
+
+.route-journey-controls button {
+  min-height: 43px;
+  border: 1px solid var(--green);
+  border-radius: 8px;
+  color: var(--green);
+  background: white;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.route-journey-controls button:last-child {
+  color: white;
+  background: var(--green);
+}
+
+.route-journey-controls button:disabled {
+  border-color: #d6d9d5;
+  color: #a8afab;
+  background: #eff0ed;
+  cursor: default;
+}
+
+.route-journey aside > ol {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.route-journey aside > ol button {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 30px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.route-journey aside > ol li.is-active button {
+  color: var(--ink);
+  background: var(--green-soft);
+}
+
+.route-journey aside > ol button > span {
+  color: #a46f16;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 15px;
+}
+
+.route-journey aside > ol button div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.route-journey aside > ol strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.route-journey aside > ol small {
+  font-size: 10px;
+}
+
+.route-journey-map {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  background: #d8ded9;
+}
+
+.route-journey-map__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.route-map-marker {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 4px solid white;
+  border-radius: 50%;
+  color: white;
+  background: var(--event);
+  box-shadow: 0 6px 18px rgba(24, 33, 29, 0.3);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.route-journey-map__label {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  display: grid;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  background: rgba(255, 253, 248, 0.9);
+  box-shadow: 0 6px 20px rgba(24, 33, 29, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.route-journey-map__label span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.route-journey-map__label strong {
+  margin-top: 3px;
+  color: var(--green);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30px;
+}
+
+.route-journey-map__error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 30px;
+  color: var(--muted);
+  background: #e5e8e4;
+  font-size: 14px;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .route-journey {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .route-journey > header {
+    grid-template-columns: 1fr auto;
+  }
+
+  .route-journey > header > div {
+    display: none;
+  }
+
+  .route-journey-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .route-journey-workspace > aside {
+    max-height: none;
+    padding: 24px;
+    border-right: 0;
+  }
+
+  .route-journey-map {
+    min-height: 62vh;
+    grid-row: 1;
+  }
+}

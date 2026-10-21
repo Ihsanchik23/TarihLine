@@ -27,6 +27,7 @@ const copy = {
   ru: {
     map: "Карта",
     catalog: "Каталог",
+    routes: "Маршруты",
     profile: "Профиль",
     about: "О проекте",
     compare: "Сравнить",
@@ -63,6 +64,7 @@ const copy = {
   kk: {
     map: "Карта",
     catalog: "Каталог",
+    routes: "Бағыттар",
     profile: "Профиль",
     about: "Жоба туралы",
     compare: "Салыстыру",
@@ -342,6 +344,9 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
           <Link className="nav-button" href="/catalog">
             {t.catalog}
           </Link>
+          <Link className="nav-button" href="/routes">
+            {t.routes}
+          </Link>
           <Link className="nav-button" href="/profile">
             {t.profile}
           </Link>
@@ -358,6 +363,7 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
         </nav>
         <div className="header-actions">
           <Link className="mobile-catalog-link" href="/catalog">{t.catalog}</Link>
+          <Link className="mobile-catalog-link" href="/routes">{t.routes}</Link>
           <Link className="mobile-catalog-link" href="/profile">{t.profile}</Link>
           <div className="language-switch" aria-label="Тіл / Язык">
             <button className={language === "kk" ? "is-active" : ""} type="button" onClick={() => setLanguage("kk")}>ҚАЗ</button>

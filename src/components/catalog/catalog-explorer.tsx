@@ -7,7 +7,7 @@ import "./catalog-explorer.css";
 
 const copy = {
   ru: {
-    map: "Карта", catalog: "Каталог", profile: "Профиль", kicker: "Исторические материалы", title: "События и личности",
+    map: "Карта", catalog: "Каталог", routes: "Маршруты", profile: "Профиль", kicker: "Исторические материалы", title: "События и личности",
     lead: "Проверенные материалы TarihLine в хронологическом порядке. Найдите тему, период или исторического деятеля.",
     search: "Поиск по названию, описанию, месту или источнику", all: "Все материалы", events: "События", people: "Личности",
     category: "Категория", period: "Период", sort: "Сортировка", allCategories: "Все категории", allYears: "1900–2000",
@@ -16,7 +16,7 @@ const copy = {
     noPublished: "Опубликованных материалов пока нет", noPublishedText: "После редакторской проверки события и личности появятся здесь автоматически.", reset: "Сбросить фильтры",
   },
   kk: {
-    map: "Карта", catalog: "Каталог", profile: "Профиль", kicker: "Тарихи материалдар", title: "Оқиғалар мен тұлғалар",
+    map: "Карта", catalog: "Каталог", routes: "Бағыттар", profile: "Профиль", kicker: "Тарихи материалдар", title: "Оқиғалар мен тұлғалар",
     lead: "TarihLine тексерілген материалдары хронологиялық ретпен. Тақырыпты, кезеңді немесе тарихи тұлғаны табыңыз.",
     search: "Атауы, сипаттамасы, орны немесе дереккөзі бойынша іздеу", all: "Барлық материалдар", events: "Оқиғалар", people: "Тұлғалар",
     category: "Санат", period: "Кезең", sort: "Сұрыптау", allCategories: "Барлық санаттар", allYears: "1900–2000",
@@ -87,7 +87,7 @@ export function CatalogExplorer({ records }: { records: HistoryRecord[] }) {
   return <main className="catalog-app">
     <header className="catalog-header">
       <Link className="catalog-brand" href="/"><span>T</span><div><strong>TarihLine</strong><small>Қазақстан · 1900–2000</small></div></Link>
-      <nav aria-label={language === "ru" ? "Навигация" : "Навигация"}><Link href="/">{t.map}</Link><Link className="is-active" href="/catalog">{t.catalog}</Link><Link href="/profile">{t.profile}</Link></nav>
+      <nav aria-label={language === "ru" ? "Навигация" : "Навигация"}><Link href="/">{t.map}</Link><Link className="is-active" href="/catalog">{t.catalog}</Link><Link href="/routes">{t.routes}</Link><Link href="/profile">{t.profile}</Link></nav>
       <div className="language-switch" aria-label="Тіл / Язык"><button className={language === "kk" ? "is-active" : ""} type="button" onClick={() => setLanguage("kk")}>ҚАЗ</button><button className={language === "ru" ? "is-active" : ""} type="button" onClick={() => setLanguage("ru")}>РУС</button></div>
     </header>
     <section className="catalog-hero"><span>{t.kicker}</span><h1>{t.title}</h1><p>{t.lead}</p><div className="catalog-stat"><strong>{records.length}</strong><span>{records.length === 1 ? t.oneResult : t.results}</span></div></section>

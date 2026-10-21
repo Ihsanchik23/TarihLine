@@ -21,7 +21,7 @@ type PersonalNote = {
 
 const copy = {
   ru: {
-    map: "Карта", catalog: "Каталог", profile: "Профиль", event: "Историческое событие", person: "Историческая личность",
+    map: "Карта", catalog: "Каталог", routes: "Маршруты", profile: "Профиль", event: "Историческое событие", person: "Историческая личность",
     overview: "Описание", significance: "Историческое значение", facts: "Основные сведения", date: "Дата",
     location: "Место", category: "Категория", coordinates: "Координаты", sources: "Источники",
     sourcesLead: "Материалы, использованные при подготовке публикации.", related: "Связанные материалы",
@@ -34,7 +34,7 @@ const copy = {
     loginNotes: "Войдите, чтобы вести личные заметки к историческим материалам.", loginAction: "Войти в аккаунт",
   },
   kk: {
-    map: "Карта", catalog: "Каталог", profile: "Профиль", event: "Тарихи оқиға", person: "Тарихи тұлға",
+    map: "Карта", catalog: "Каталог", routes: "Бағыттар", profile: "Профиль", event: "Тарихи оқиға", person: "Тарихи тұлға",
     overview: "Сипаттама", significance: "Тарихи маңызы", facts: "Негізгі мәліметтер", date: "Күні",
     location: "Орын", category: "Санат", coordinates: "Координаттар", sources: "Дереккөздер",
     sourcesLead: "Жарияланымды дайындау кезінде пайдаланылған материалдар.", related: "Байланысты материалдар",
@@ -88,7 +88,7 @@ export function RecordDetail({ record, related, notes, isAuthenticated, isBookma
   return <main className="record-page">
     <header className="record-header">
       <Link className="record-brand" href="/"><span>T</span><div><strong>TarihLine</strong><small>Қазақстан · 1900–2000</small></div></Link>
-      <nav aria-label="Навигация"><Link href="/">{t.map}</Link><Link className="is-active" href="/catalog">{t.catalog}</Link><Link href="/profile">{t.profile}</Link></nav>
+      <nav aria-label="Навигация"><Link href="/">{t.map}</Link><Link className="is-active" href="/catalog">{t.catalog}</Link><Link href="/routes">{t.routes}</Link><Link href="/profile">{t.profile}</Link></nav>
       <div className="record-language" aria-label="Тіл / Язык"><button className={language === "kk" ? "is-active" : ""} type="button" onClick={() => setLanguage("kk")}>ҚАЗ</button><button className={language === "ru" ? "is-active" : ""} type="button" onClick={() => setLanguage("ru")}>РУС</button></div>
     </header>
 
