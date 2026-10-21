@@ -28,6 +28,7 @@ const copy = {
 };
 
 const categoryLabels: Record<string, { ru: string; kk: string }> = {
+  history: { ru: "История", kk: "Тарих" },
   politics: { ru: "Политика", kk: "Саясат" }, war: { ru: "Войны и конфликты", kk: "Соғыстар мен қақтығыстар" },
   society: { ru: "Общество", kk: "Қоғам" }, economy: { ru: "Экономика", kk: "Экономика" },
   culture: { ru: "Культура", kk: "Мәдениет" }, science: { ru: "Наука и технологии", kk: "Ғылым және технология" },
@@ -45,6 +46,25 @@ function initials(value: string) {
 
 function mapYear(record: HistoryRecord) {
   return Math.min(2000, Math.max(1900, record.startYear));
+}
+
+type FilterOption = { value: string; label: string };
+
+function BrandedSelect({ label, value, options, onChange }: { label: string; value: string; options: FilterOption[]; onChange: (value: string) => void }) {
+  const selected = options.find((option) => option.value === value) ?? options[0];
+
+  return <details className="catalog-filter">
+    <summary>
+      <span><small>{label}</small><strong>{selected.label}</strong></span>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m7 9 5 5 5-5" /></svg>
+    </summary>
+    <div className="catalog-filter__menu" role="listbox" aria-label={label}>
+      {options.map((option) => <button className={option.value === value ? "is-active" : ""} type="button" role="option" aria-selected={option.value === value} key={option.value} onClick={(event) => {
+        onChange(option.value);
+        event.currentTarget.closest("details")?.removeAttribute("open");
+      }}><span>{option.label}</span>{option.value === value ? <span aria-hidden="true">✓</span> : null}</button>)}
+    </div>
+  </details>;
 }
 
 export function CatalogExplorer({ records }: { records: HistoryRecord[] }) {
@@ -85,20 +105,28 @@ export function CatalogExplorer({ records }: { records: HistoryRecord[] }) {
     setQuery(""); setType("all"); setCategory("all"); setPeriod("all"); setSort("oldest");
   }
 
+  const categoryOptions = [{ value: "all", label: t.allCategories }, ...categories.map((item) => ({ value: item, label: categoryLabels[item]?.[language] ?? item }))];
+  const periodOptions = periods.map((item) => ({ value: item.value, label: item.value === "all" ? t.allYears : item.value.replace("-", "–") }));
+  const sortOptions = [{ value: "oldest", label: t.oldest }, { value: "newest", label: t.newest }, { value: "alphabet", label: t.alphabet }];
+
   return <main className="catalog-app has-public-sidebar">
     <PublicSidebar active="catalog" language={language} />
     <header className="catalog-header">
       <Link className="catalog-brand" href="/"><span>T</span><div><strong>TarihLine</strong><small>Қазақстан · 1900–2000</small></div></Link>
       <div className="language-switch" aria-label="Тіл / Язык"><button className={language === "kk" ? "is-active" : ""} type="button" onClick={() => setLanguage("kk")}>ҚАЗ</button><button className={language === "ru" ? "is-active" : ""} type="button" onClick={() => setLanguage("ru")}>РУС</button></div>
     </header>
-    <section className="catalog-hero"><span>{t.kicker}</span><h1>{t.title}</h1><p>{t.lead}</p><div className="catalog-stat"><strong>{records.length}</strong><span>{records.length === 1 ? t.oneResult : t.results}</span></div></section>
+    <section className="catalog-hero"><div><span>{t.kicker}</span><h1>{t.title}</h1><p>{t.lead}</p></div><div className="catalog-stat"><strong>{records.length}</strong><span>{records.length === 1 ? t.oneResult : t.results}</span></div></section>
     <section className="catalog-controls" aria-label={language === "ru" ? "Фильтры каталога" : "Каталог сүзгілері"}>
-      <label className="catalog-search"><span aria-hidden="true">⌕</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.search} /></label>
+      <label className="catalog-search"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.search} /></label>
       <div className="catalog-type-tabs"><button className={type === "all" ? "is-active" : ""} type="button" onClick={() => setType("all")}>{t.all}</button><button className={type === "event" ? "is-active" : ""} type="button" onClick={() => setType("event")}>{t.events}</button><button className={type === "person" ? "is-active" : ""} type="button" onClick={() => setType("person")}>{t.people}</button></div>
-      <div className="catalog-selects"><label><span>{t.category}</span><select value={category} onChange={(event) => setCategory(event.target.value)}><option value="all">{t.allCategories}</option>{categories.map((item) => <option value={item} key={item}>{categoryLabels[item]?.[language] ?? item}</option>)}</select></label><label><span>{t.period}</span><select value={period} onChange={(event) => setPeriod(event.target.value)}>{periods.map((item) => <option value={item.value} key={item.value}>{item.value === "all" ? t.allYears : item.value.replace("-", "–")}</option>)}</select></label><label><span>{t.sort}</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="oldest">{t.oldest}</option><option value="newest">{t.newest}</option><option value="alphabet">{t.alphabet}</option></select></label></div>
+      <div className="catalog-selects"><BrandedSelect label={t.category} value={category} options={categoryOptions} onChange={setCategory}/><BrandedSelect label={t.period} value={period} options={periodOptions} onChange={setPeriod}/><BrandedSelect label={t.sort} value={sort} options={sortOptions} onChange={setSort}/></div>
     </section>
     <section className="catalog-results"><div className="catalog-results-heading"><span>{filteredRecords.length} {filteredRecords.length === 1 ? t.oneResult : t.results}</span>{(query || type !== "all" || category !== "all" || period !== "all") ? <button type="button" onClick={resetFilters}>{t.reset}</button> : null}</div>
-      {filteredRecords.length ? <div className="catalog-grid">{filteredRecords.map((record) => <article className={`catalog-card catalog-card--${record.type}`} key={record.id}><div className="catalog-card__top"><span className="catalog-card__symbol">{record.type === "person" ? initials(record.title[language]) : record.startYear}</span><div><span>{record.type === "event" ? t.events : t.people}</span><strong>{record.dateLabel[language]}</strong></div><small>{categoryLabels[record.category]?.[language] ?? record.category}</small></div><h2><Link href={`/catalog/${record.slug}`}>{record.title[language]}</Link></h2><p>{record.summary[language]}</p><dl><div><dt>{language === "ru" ? "Место" : "Орын"}</dt><dd>{record.location[language]}</dd></div><div><dt>{language === "ru" ? "Основание" : "Негіз"}</dt><dd>{record.sources.length} {t.sources}</dd></div></dl><div className="catalog-card__actions"><Link href={`/catalog/${record.slug}`}>{t.readAction}<span aria-hidden="true">→</span></Link><Link href={`/?year=${mapYear(record)}&record=${record.id}`}>{t.mapAction}</Link></div></article>)}</div> : <div className="catalog-empty"><span aria-hidden="true">T</span><h2>{records.length ? t.noResults : t.noPublished}</h2><p>{records.length ? t.noResultsText : t.noPublishedText}</p>{records.length ? <button type="button" onClick={resetFilters}>{t.reset}</button> : <Link href="/">{t.map}</Link>}</div>}
+      {filteredRecords.length ? <div className="catalog-list">{filteredRecords.map((record, index) => <article className={`catalog-list-item catalog-list-item--${record.type}`} key={record.id}>
+        <div className="catalog-list-item__date"><span>{String(index + 1).padStart(2, "0")}</span><strong>{record.type === "person" ? initials(record.title[language]) : record.startYear}</strong><small>{record.dateLabel[language]}</small></div>
+        <div className="catalog-list-item__content"><div className="catalog-list-item__eyebrow"><span>{record.type === "event" ? t.events : t.people}</span><span>{categoryLabels[record.category]?.[language] ?? record.category}</span></div><h2><Link href={`/catalog/${record.slug}`}>{record.title[language]}</Link></h2><p>{record.summary[language]}</p><div className="catalog-list-item__meta"><span>{record.location[language]}</span><span>{record.sources.length} {t.sources}</span></div></div>
+        <div className="catalog-list-item__actions"><Link href={`/catalog/${record.slug}`}>{t.readAction}<span aria-hidden="true">→</span></Link><Link href={`/?year=${mapYear(record)}&record=${record.id}`}>{t.mapAction}</Link></div>
+      </article>)}</div> : <div className="catalog-empty"><span aria-hidden="true">T</span><h2>{records.length ? t.noResults : t.noPublished}</h2><p>{records.length ? t.noResultsText : t.noPublishedText}</p>{records.length ? <button type="button" onClick={resetFilters}>{t.reset}</button> : <Link href="/">{t.map}</Link>}</div>}
     </section>
   </main>;
 }
