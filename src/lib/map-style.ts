@@ -47,10 +47,14 @@ export function collapseMapAttribution(map: MapLibreMap) {
   element?.classList.remove("maplibregl-compact-show");
 }
 
+export function historicalFillLayerId(layerId: string) {
+  return `${fillPrefix}${layerId}`;
+}
+
 function removeInactiveHistoricalLayers(map: MapLibreMap, layers: HistoricalMapLayer[]) {
   const style = map.getStyle();
   const retainedLayerIds = new Set(layers.flatMap((layer) => [
-    `${fillPrefix}${layer.id}`,
+    historicalFillLayerId(layer.id),
     `${linePrefix}${layer.id}`,
   ]));
   const retainedSourceIds = new Set(layers.map((layer) => `${sourcePrefix}${layer.id}`));
@@ -77,7 +81,7 @@ export function renderHistoricalLayers(map: MapLibreMap, layers: HistoricalMapLa
 
   layers.forEach((layer, index) => {
     const sourceId = `${sourcePrefix}${layer.id}`;
-    const fillId = `${fillPrefix}${layer.id}`;
+    const fillId = historicalFillLayerId(layer.id);
     const lineId = `${linePrefix}${layer.id}`;
     const color = colors[index % colors.length];
     const yearFilter: FilterSpecification = [
@@ -90,6 +94,7 @@ export function renderHistoricalLayers(map: MapLibreMap, layers: HistoricalMapLa
       map.addSource(sourceId, {
         type: "geojson",
         data: layer.geojsonUrl,
+        generateId: true,
         attribution: `${layer.source.publisher}: ${layer.source.title} · ${layer.license}`,
       });
     }
@@ -102,7 +107,7 @@ export function renderHistoricalLayers(map: MapLibreMap, layers: HistoricalMapLa
         filter: yearFilter,
         paint: {
           "fill-color": ["coalesce", ["get", "fill"], color],
-          "fill-opacity": layer.reconstruction ? 0.32 : 0.42,
+          "fill-opacity": ["case", ["boolean", ["feature-state", "hover"], false], layer.reconstruction ? 0.52 : 0.6, layer.reconstruction ? 0.32 : 0.42],
         },
         metadata: {
           "tarihline:title": layer.title[language],
@@ -120,7 +125,7 @@ export function renderHistoricalLayers(map: MapLibreMap, layers: HistoricalMapLa
         filter: yearFilter,
         paint: {
           "line-color": ["coalesce", ["get", "stroke"], "#3e5148"],
-          "line-width": layer.reconstruction ? 1.4 : 1.8,
+          "line-width": ["case", ["boolean", ["feature-state", "hover"], false], layer.reconstruction ? 2.8 : 3.2, layer.reconstruction ? 1.4 : 1.8],
           "line-opacity": 0.9,
           ...(layer.reconstruction ? { "line-dasharray": [3, 2] } : {}),
         },

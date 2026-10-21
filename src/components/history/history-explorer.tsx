@@ -5,13 +5,15 @@ import Link from "next/link";
 import {
   LngLatBounds,
   Map as MapLibreMap,
+  type MapGeoJSONFeature,
+  type MapMouseEvent,
   Marker,
   NavigationControl,
   setWorkerUrl,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { HistoricalMapLayer, HistoryRecord, HistoryRelation, Language } from "@/lib/history-types";
-import { collapseMapAttribution, renderHistoricalLayers, tarihLineMapStyle } from "@/lib/map-style";
+import { collapseMapAttribution, historicalFillLayerId, renderHistoricalLayers, tarihLineMapStyle } from "@/lib/map-style";
 import { ComparisonView } from "./comparison-view";
 import "./history-explorer.css";
 
@@ -56,6 +58,12 @@ const copy = {
     data: "Данные",
     navigation: "Навигация",
     zoomHint: "Перетаскивайте карту и используйте колёсико или кнопки масштаба.",
+    territoryHint: "Наведите на территорию или нажмите, чтобы открыть сведения.",
+    territory: "Политическое образование",
+    territoryPeriod: "Период на карте",
+    territorySource: "Источник геометрии",
+    territoryArticle: "Справочная статья",
+    territoryNaming: "Название приводится в форме исходного набора данных.",
     ownMap: "Базовая карта",
     historicalBorders: "Исторические границы",
     bordersPending: "Проверенные границы для этого года ещё не опубликованы",
@@ -93,6 +101,12 @@ const copy = {
     data: "Деректер",
     navigation: "Навигация",
     zoomHint: "Картаны жылжытып, масштаб үшін дөңгелекті немесе батырмаларды пайдаланыңыз.",
+    territoryHint: "Мәліметтерді ашу үшін аумаққа меңзерді апарыңыз немесе басыңыз.",
+    territory: "Саяси құрылым",
+    territoryPeriod: "Картадағы кезең",
+    territorySource: "Геометрия дереккөзі",
+    territoryArticle: "Анықтамалық мақала",
+    territoryNaming: "Атауы бастапқы деректер жинағындағы нұсқада берілген.",
     ownMap: "Негізгі карта",
     historicalBorders: "Тарихи шекаралар",
     bordersPending: "Бұл жылға арналған тексерілген шекаралар әлі жарияланбаған",
@@ -138,10 +152,44 @@ type Props = {
   initialRecordId?: string;
 };
 
+type Territory = {
+  featureId: string | number;
+  sourceId: string;
+  name: string;
+  validFrom: number;
+  validTo: number;
+  wikipedia: string | null;
+  wikidata: string | null;
+  layer: HistoricalMapLayer;
+};
+
+function territoryFromFeature(feature: MapGeoJSONFeature, layer: HistoricalMapLayer): Territory | null {
+  if (feature.id === undefined) return null;
+  const name = typeof feature.properties.name === "string" ? feature.properties.name : "";
+  const validFrom = Number(feature.properties.valid_from);
+  const validTo = Number(feature.properties.valid_to);
+  if (!name || !Number.isFinite(validFrom) || !Number.isFinite(validTo)) return null;
+  return {
+    featureId: feature.id,
+    sourceId: feature.source,
+    name,
+    validFrom,
+    validTo,
+    wikipedia: typeof feature.properties.wikipedia === "string" ? feature.properties.wikipedia : null,
+    wikidata: typeof feature.properties.wikidata === "string" ? feature.properties.wikidata : null,
+    layer,
+  };
+}
+
+function wikipediaUrl(value: string) {
+  return `https://en.wikipedia.org/wiki/${encodeURIComponent(value.replaceAll(" ", "_"))}`;
+}
+
 export function HistoryExplorer({ records, relations, mapLayers, initialYear, initialRecordId }: Props) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
+  const hoveredFeatureRef = useRef<{ source: string; id: string | number } | null>(null);
   const [language, setLanguage] = useState<Language>("ru");
   const startingYear = initialYear ?? START_YEAR;
   const [year, setYear] = useState(startingYear);
@@ -151,6 +199,8 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
   const [mapError, setMapError] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
+  const [hoveredTerritory, setHoveredTerritory] = useState<Territory | null>(null);
+  const [selectedTerritory, setSelectedTerritory] = useState<Territory | null>(null);
   const initialSelected = records.find((record) => record.id === initialRecordId && isVisibleInYear(record, startingYear))
     ?? records.find((record) => record.type === "event" && isVisibleInYear(record, startingYear));
   const [selectedId, setSelectedId] = useState<string | null>(initialSelected?.id ?? null);
@@ -209,10 +259,10 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
     map.on("load", () => {
       window.clearTimeout(fallbackTimer);
       setMapError(false);
+      setMapReady(true);
       collapseMapAttribution(map);
     });
     mapRef.current = map;
-    queueMicrotask(() => setMapReady(true));
 
     return () => {
       window.clearTimeout(fallbackTimer);
@@ -235,16 +285,75 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
   }, [activeMapLayers, language, mapReady, year]);
 
   useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || !activeMapLayers.length) return;
+    const layersById = new Map(activeMapLayers.map((layer) => [historicalFillLayerId(layer.id), layer]));
+    const layerIds = [...layersById.keys()].filter((id) => map.getLayer(id));
+    if (!layerIds.length) return;
+
+    function clearHovered() {
+      const previous = hoveredFeatureRef.current;
+      if (previous) map?.setFeatureState({ source: previous.source, id: previous.id }, { hover: false });
+      hoveredFeatureRef.current = null;
+      setHoveredTerritory(null);
+      if (map) map.getCanvas().style.cursor = "";
+    }
+
+    function findTerritory(event: MapMouseEvent) {
+      const feature = map?.queryRenderedFeatures(event.point, { layers: layerIds })[0];
+      if (!feature) return null;
+      const layer = layersById.get(feature.layer.id);
+      return layer ? territoryFromFeature(feature, layer) : null;
+    }
+
+    function onMouseMove(event: MapMouseEvent) {
+      const territory = findTerritory(event);
+      if (!territory) {
+        clearHovered();
+        return;
+      }
+      const previous = hoveredFeatureRef.current;
+      if (previous?.source === territory.sourceId && previous.id === territory.featureId) return;
+      if (previous) map?.setFeatureState({ source: previous.source, id: previous.id }, { hover: false });
+      map?.setFeatureState({ source: territory.sourceId, id: territory.featureId }, { hover: true });
+      hoveredFeatureRef.current = { source: territory.sourceId, id: territory.featureId };
+      setHoveredTerritory(territory);
+      if (map) map.getCanvas().style.cursor = "pointer";
+    }
+
+    function onClick(event: MapMouseEvent) {
+      const target = event.originalEvent.target;
+      if (target instanceof Element && target.closest(".history-marker")) return;
+      const territory = findTerritory(event);
+      if (territory) {
+        setSelectedId(null);
+        setSelectedTerritory(territory);
+      }
+    }
+
+    map.on("mousemove", onMouseMove);
+    map.on("mouseout", clearHovered);
+    map.on("click", onClick);
+    return () => {
+      map.off("mousemove", onMouseMove);
+      map.off("mouseout", clearHovered);
+      map.off("click", onClick);
+      clearHovered();
+    };
+  }, [activeMapLayers, mapReady, year]);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         if (showAbout) setShowAbout(false);
+        else if (selectedTerritory) setSelectedTerritory(null);
         else setSelectedId(null);
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [showAbout]);
+  }, [selectedTerritory, showAbout]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -265,7 +374,10 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
       element.setAttribute("aria-label", record.title[language]);
       element.title = record.title[language];
       element.textContent = record.type === "person" ? initials(record.title[language]) : `${record.startYear}`;
-      element.addEventListener("click", () => setSelectedId(record.id));
+      element.addEventListener("click", () => {
+        setSelectedTerritory(null);
+        setSelectedId(record.id);
+      });
 
       const marker = new Marker({
         element,
@@ -310,6 +422,7 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
     const nextYear = Math.min(MAX_YEAR, Math.max(MIN_YEAR, value));
     setYear(nextYear);
     if (selected && !isVisibleInYear(selected, nextYear)) setSelectedId(null);
+    if (selectedTerritory && (selectedTerritory.validFrom > nextYear || selectedTerritory.validTo < nextYear)) setSelectedTerritory(null);
   }
 
   if (showComparison) {
@@ -416,7 +529,10 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
                   className={selectedId === record.id ? "record-row is-selected" : "record-row"}
                   type="button"
                   key={record.id}
-                  onClick={() => setSelectedId(record.id)}
+                  onClick={() => {
+                    setSelectedTerritory(null);
+                    setSelectedId(record.id);
+                  }}
                 >
                   <span className={`record-symbol record-symbol--${record.type}`}>
                     {record.type === "person" ? initials(record.title[language]) : record.startYear}
@@ -452,7 +568,21 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
                 : t.bordersPending}
             </span>
           </div>
-          <div className="map-hint">{t.zoomHint}</div>
+          <div className="map-hint">{t.zoomHint} {t.territoryHint}</div>
+
+          {hoveredTerritory && !selectedTerritory && <div className="territory-hover" aria-live="polite"><strong>{hoveredTerritory.name}</strong><span>{hoveredTerritory.validFrom}–{hoveredTerritory.validTo}</span></div>}
+
+          {selectedTerritory && <article className="territory-card" aria-live="polite">
+            <button className="detail-close" type="button" aria-label={t.close} onClick={() => setSelectedTerritory(null)}><Icon name="close" /></button>
+            <span className="territory-card__kicker">{t.territory}</span>
+            <h2>{selectedTerritory.name}</h2>
+            <p>{t.territoryNaming}</p>
+            <dl><div><dt>{t.territoryPeriod}</dt><dd>{selectedTerritory.validFrom}–{selectedTerritory.validTo}</dd></div><div><dt>{t.territorySource}</dt><dd>{selectedTerritory.layer.source.title}</dd></div></dl>
+            <div className="territory-card__links">
+              <a href={selectedTerritory.layer.source.url} target="_blank" rel="noreferrer">{t.territorySource} <span aria-hidden="true">↗</span></a>
+              {selectedTerritory.wikipedia ? <a href={wikipediaUrl(selectedTerritory.wikipedia)} target="_blank" rel="noreferrer">{t.territoryArticle} <span aria-hidden="true">↗</span></a> : selectedTerritory.wikidata ? <a href={`https://www.wikidata.org/wiki/${encodeURIComponent(selectedTerritory.wikidata)}`} target="_blank" rel="noreferrer">Wikidata <span aria-hidden="true">↗</span></a> : null}
+            </div>
+          </article>}
 
           {selected && (
             <article className="detail-card" aria-live="polite">
