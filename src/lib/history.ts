@@ -53,6 +53,7 @@ async function loadMapLayers(client: SupabaseServerClient) {
       snapshotYear: layer.snapshot_year,
       validFrom: layer.valid_from,
       validTo: layer.valid_to,
+      changeYears: layer.change_years.length ? layer.change_years : [layer.valid_from, layer.valid_to],
       geojsonUrl: resolveGeojsonUrl(client, layer.geojson_path),
       administrativeLevel: layer.administrative_level,
       coverage: layer.coverage,

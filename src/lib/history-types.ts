@@ -46,6 +46,7 @@ export type HistoricalMapLayer = {
   snapshotYear: number;
   validFrom: number;
   validTo: number;
+  changeYears: number[];
   geojsonUrl: string;
   administrativeLevel: string;
   coverage: string;

@@ -43,6 +43,7 @@ export type Database = {
           administrative_level: string
           area_label_kk: string
           area_label_ru: string
+          change_years: number[]
           coverage: string
           created_at: string
           geojson_path: string
@@ -64,6 +65,7 @@ export type Database = {
           administrative_level: string
           area_label_kk: string
           area_label_ru: string
+          change_years?: number[]
           coverage?: string
           created_at?: string
           geojson_path: string
@@ -85,6 +87,7 @@ export type Database = {
           administrative_level?: string
           area_label_kk?: string
           area_label_ru?: string
+          change_years?: number[]
           coverage?: string
           created_at?: string
           geojson_path?: string

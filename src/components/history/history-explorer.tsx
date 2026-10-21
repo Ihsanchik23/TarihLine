@@ -41,9 +41,10 @@ const copy = {
     noRecords: "События и личности за этот год ещё не опубликованы",
     hiddenRecords: "Объекты скрыты настройками слоёв",
     close: "Закрыть",
-    previous: "Предыдущий год",
-    next: "Следующий год",
+    previous: "Предыдущее изменение границ",
+    next: "Следующее изменение границ",
     selectedYear: "Выбранный год",
+    mapStates: "состояний карты",
     overview: "Обзорная шкала",
     available: "Период исторической карты",
     significance: "Историческое значение",
@@ -84,9 +85,10 @@ const copy = {
     noRecords: "Бұл жылға арналған оқиғалар мен тұлғалар әлі жарияланбаған",
     hiddenRecords: "Нысандар қабат баптауларымен жасырылған",
     close: "Жабу",
-    previous: "Алдыңғы жыл",
-    next: "Келесі жыл",
+    previous: "Шекаралардың алдыңғы өзгерісі",
+    next: "Шекаралардың келесі өзгерісі",
     selectedYear: "Таңдалған жыл",
+    mapStates: "карта күйі",
     overview: "Жалпы уақыт шкаласы",
     available: "Тарихи картаның кезеңі",
     significance: "Тарихи маңызы",
@@ -221,6 +223,16 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
     () => mapLayers.filter((layer) => layer.validFrom <= year && layer.validTo >= year),
     [mapLayers, year],
   );
+  const mapChangeYears = useMemo(
+    () => [...new Set([
+      MIN_YEAR,
+      ...mapLayers.flatMap((layer) => layer.changeYears),
+      MAX_YEAR,
+    ].filter((value) => value >= MIN_YEAR && value <= MAX_YEAR))].sort((first, second) => first - second),
+    [mapLayers],
+  );
+  const previousChangeYear = [...mapChangeYears].reverse().find((value) => value < year) ?? null;
+  const nextChangeYear = mapChangeYears.find((value) => value > year) ?? null;
 
   useEffect(() => {
     const stored = window.localStorage.getItem("tarihline-language");
@@ -632,23 +644,28 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
 
       <section className="timeline-panel" aria-label={t.selectedYear}>
         <div className="timeline-year-control">
-          <button type="button" aria-label={t.previous} disabled={year === MIN_YEAR} onClick={() => changeYear(year - 1)}>−</button>
-          <div><span>{t.selectedYear}</span><strong>{year}</strong></div>
-          <button type="button" aria-label={t.next} disabled={year === MAX_YEAR} onClick={() => changeYear(year + 1)}>+</button>
+          <button type="button" aria-label={previousChangeYear ? `${t.previous}: ${previousChangeYear}` : t.previous} title={previousChangeYear ? `${t.previous}: ${previousChangeYear}` : t.previous} disabled={previousChangeYear === null} onClick={() => previousChangeYear !== null && changeYear(previousChangeYear)}>‹</button>
+          <div><span>{t.selectedYear}</span><strong>{year}</strong><small>{mapChangeYears.length} {t.mapStates}</small></div>
+          <button type="button" aria-label={nextChangeYear ? `${t.next}: ${nextChangeYear}` : t.next} title={nextChangeYear ? `${t.next}: ${nextChangeYear}` : t.next} disabled={nextChangeYear === null} onClick={() => nextChangeYear !== null && changeYear(nextChangeYear)}>›</button>
         </div>
         <div className="timeline-main">
           <div className="working-scale">
             <div className="working-scale__labels"><span>{MIN_YEAR}</span><strong>{t.available}</strong><span>{MAX_YEAR}</span></div>
-            <input
-              type="range"
-              min={MIN_YEAR}
-              max={MAX_YEAR}
-              step="1"
-              value={year}
-              aria-label={t.selectedYear}
-              onChange={(event) => changeYear(Number(event.target.value))}
-              style={{ "--timeline-progress": `${((year - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * 100}%` } as React.CSSProperties}
-            />
+            <div className="timeline-slider">
+              <div className="change-year-marks" aria-hidden="true">
+                {mapChangeYears.map((changeYear) => <span className={changeYear === year ? "is-active" : ""} style={{ left: `${((changeYear - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * 100}%` }} key={changeYear} />)}
+              </div>
+              <input
+                type="range"
+                min={MIN_YEAR}
+                max={MAX_YEAR}
+                step="1"
+                value={year}
+                aria-label={t.selectedYear}
+                onChange={(event) => changeYear(Number(event.target.value))}
+                style={{ "--timeline-progress": `${((year - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * 100}%` } as React.CSSProperties}
+              />
+            </div>
             <div className="year-ticks">
               {Array.from({ length: 11 }, (_, index) => MIN_YEAR + index * 10).map((tick) => (
                 <button className={tick === year ? "is-active" : ""} type="button" key={tick} onClick={() => changeYear(tick)}><span />{tick}</button>

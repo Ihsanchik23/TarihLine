@@ -61,12 +61,16 @@ function validateFields(values: LayerFields) {
 }
 
 async function validateStoredGeoJson(path: string) {
-  if (!/^admin\/[0-9a-f-]{36}\.geojson$/.test(path)) return { error: "Некорректный путь файла", featureCount: 0 };
+  if (!/^admin\/[0-9a-f-]{36}\.geojson$/.test(path)) return { error: "Некорректный путь файла", featureCount: 0, changeYears: [] };
   const supabase = await createClient();
   const { data, error } = await supabase.storage.from("historical-maps").download(path);
-  if (error || !data) return { error: "Загруженный файл не найден", featureCount: 0 };
-  if (data.size > 10485760) return { error: "Размер GeoJSON превышает 10 МБ", featureCount: 0 };
+  if (error || !data) return { error: "Загруженный файл не найден", featureCount: 0, changeYears: [] };
+  if (data.size > 10485760) return { error: "Размер GeoJSON превышает 10 МБ", featureCount: 0, changeYears: [] };
   return validateGeoJsonText(await data.text());
+}
+
+function changeYearsForPeriod(years: number[], validFrom: number, validTo: number) {
+  return [...new Set([validFrom, ...years.filter((year) => year >= validFrom && year <= validTo), validTo])].sort((first, second) => first - second);
 }
 
 export async function createMapLayer(data: FormData): Promise<MapLayerActionState> {
@@ -101,6 +105,7 @@ export async function createMapLayer(data: FormData): Promise<MapLayerActionStat
     snapshot_year: values.snapshotYear,
     priority: values.priority,
     reconstruction: values.reconstruction,
+    change_years: changeYearsForPeriod(geojson.changeYears, values.validFrom, values.validTo),
     geojson_path: path,
     status: "draft",
   }).select("id").single();
