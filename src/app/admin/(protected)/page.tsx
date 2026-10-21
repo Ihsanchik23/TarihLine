@@ -19,12 +19,11 @@ function CountCard({ label, value, detail }: CountCardProps) {
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
-  const [records, events, people, sources, layers] = await Promise.all([
+  const [records, events, people, sources] = await Promise.all([
     supabase.from("historical_records").select("id", { count: "exact", head: true }),
     supabase.from("historical_records").select("id", { count: "exact", head: true }).eq("record_type", "event"),
     supabase.from("historical_records").select("id", { count: "exact", head: true }).eq("record_type", "person"),
     supabase.from("sources").select("id", { count: "exact", head: true }),
-    supabase.from("border_layers").select("id", { count: "exact", head: true }).eq("status", "published"),
   ]);
 
   const counts = {
@@ -32,7 +31,6 @@ export default async function AdminDashboardPage() {
     events: events.count ?? 0,
     people: people.count ?? 0,
     sources: sources.count ?? 0,
-    layers: layers.count ?? 0,
   };
 
   return (
@@ -51,20 +49,6 @@ export default async function AdminDashboardPage() {
         <CountCard label="События" value={counts.events} detail="Исторические события в базе" />
         <CountCard label="Личности" value={counts.people} detail="Исторические личности в базе" />
         <CountCard label="Источники" value={counts.sources} detail="Использованные публикации и наборы" />
-      </section>
-
-      <section className="admin-foundation-card">
-        <div>
-          <span className="admin-section-number">01</span>
-          <div>
-            <h2>Основа бэкенда готова</h2>
-            <p>Авторизация, проверка роли администратора, защищённые маршруты и политики доступа работают через Supabase.</p>
-          </div>
-        </div>
-        <div className="admin-foundation-status">
-          <span className="admin-status-dot" />
-          <span>{counts.layers} опубликованный слой границ</span>
-        </div>
       </section>
 
       <section className="admin-next-section">
