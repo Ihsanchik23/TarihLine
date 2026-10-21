@@ -5,8 +5,6 @@ const colors = ["#d4a85f", "#6f9f87", "#bf765e", "#8195b2", "#aa8f69", "#7d9e9b"
 const sourcePrefix = "tarihline-history-source-";
 const fillPrefix = "tarihline-history-fill-";
 const linePrefix = "tarihline-history-line-";
-const appearedPrefix = "tarihline-history-appeared-";
-const disappearedPrefix = "tarihline-history-disappeared-";
 const oceanTiles = "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}";
 
 export const tarihLineMapStyle: StyleSpecification = {
@@ -58,14 +56,12 @@ function removeInactiveHistoricalLayers(map: MapLibreMap, layers: HistoricalMapL
   const retainedLayerIds = new Set(layers.flatMap((layer) => [
     historicalFillLayerId(layer.id),
     `${linePrefix}${layer.id}`,
-    `${appearedPrefix}${layer.id}`,
-    `${disappearedPrefix}${layer.id}`,
   ]));
   const retainedSourceIds = new Set(layers.map((layer) => `${sourcePrefix}${layer.id}`));
   const layerIds = style.layers
     .map((layer) => layer.id)
     .filter((id) => (
-      id.startsWith(fillPrefix) || id.startsWith(linePrefix) || id.startsWith(appearedPrefix) || id.startsWith(disappearedPrefix)
+      id.startsWith(fillPrefix) || id.startsWith(linePrefix)
     ) && !retainedLayerIds.has(id));
 
   layerIds.reverse().forEach((id) => {
@@ -87,10 +83,7 @@ export function renderHistoricalLayers(map: MapLibreMap, layers: HistoricalMapLa
     const sourceId = `${sourcePrefix}${layer.id}`;
     const fillId = historicalFillLayerId(layer.id);
     const lineId = `${linePrefix}${layer.id}`;
-    const appearedId = `${appearedPrefix}${layer.id}`;
-    const disappearedId = `${disappearedPrefix}${layer.id}`;
     const color = colors[index % colors.length];
-    const changeYear = layer.changeYears.includes(year) && year > layer.validFrom ? year : -1;
     const yearFilter: FilterSpecification = [
       "all",
       ["<=", ["to-number", ["coalesce", ["get", "valid_from"], layer.validFrom]], year],
@@ -144,39 +137,5 @@ export function renderHistoricalLayers(map: MapLibreMap, layers: HistoricalMapLa
       map.setFilter(lineId, yearFilter);
     }
 
-    const disappearedFilter: FilterSpecification = ["==", ["to-number", ["get", "valid_to"]], changeYear - 1];
-    const appearedFilter: FilterSpecification = ["==", ["to-number", ["get", "valid_from"]], changeYear];
-
-    if (!map.getLayer(disappearedId)) {
-      map.addLayer({
-        id: disappearedId,
-        type: "fill",
-        source: sourceId,
-        filter: disappearedFilter,
-        paint: {
-          "fill-color": "#b65b52",
-          "fill-opacity": 0.34,
-          "fill-outline-color": "#8f3934",
-        },
-      });
-    } else {
-      map.setFilter(disappearedId, disappearedFilter);
-    }
-
-    if (!map.getLayer(appearedId)) {
-      map.addLayer({
-        id: appearedId,
-        type: "fill",
-        source: sourceId,
-        filter: appearedFilter,
-        paint: {
-          "fill-color": "#2f9465",
-          "fill-opacity": 0.48,
-          "fill-outline-color": "#176548",
-        },
-      });
-    } else {
-      map.setFilter(appearedId, appearedFilter);
-    }
   });
 }

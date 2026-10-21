@@ -27,11 +27,10 @@ export default async function ProfilePage({ searchParams }: Props) {
   const userId = claimsData?.claims?.sub;
   if (!userId) redirect("/auth?next=/profile");
 
-  const [profileResult, bookmarksResult, notesResult, routesResult, roleResult, history, params] = await Promise.all([
+  const [profileResult, bookmarksResult, notesResult, roleResult, history, params] = await Promise.all([
     supabase.from("profiles").select("display_name, username, preferred_language, created_at").eq("id", userId).maybeSingle(),
     supabase.from("bookmarks").select("record_id, created_at").eq("user_id", userId).order("created_at", { ascending: false }),
     supabase.from("notes").select("id, record_id, title, content, updated_at").eq("user_id", userId).order("updated_at", { ascending: false }),
-    supabase.from("routes").select("id", { count: "exact", head: true }).eq("user_id", userId),
     supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle(),
     getHistoryData(),
     searchParams,
@@ -47,7 +46,7 @@ export default async function ProfilePage({ searchParams }: Props) {
   return <main className="profile-page">
     <header className="profile-header">
       <Link className="profile-brand" href="/"><span>T</span><div><strong>TarihLine</strong><small>Қазақстан · 1900–2000</small></div></Link>
-      <nav aria-label="Навигация"><Link href="/">Карта</Link><Link href="/catalog">Каталог</Link><Link href="/routes">Маршруты</Link><Link className="is-active" href="/profile">Профиль</Link></nav>
+      <nav aria-label="Навигация"><Link href="/">Карта</Link><Link href="/catalog">Каталог</Link><Link className="is-active" href="/profile">Профиль</Link></nav>
       <form action={logout}><button type="submit">Выйти</button></form>
     </header>
 
@@ -78,7 +77,6 @@ export default async function ProfilePage({ searchParams }: Props) {
           <label><span>Электронная почта</span><input type="email" value={email} disabled /></label>
           <button type="submit">Сохранить изменения</button>
         </form>
-        <Link className="profile-admin-link" href="/routes">Исторические маршруты · {routesResult.count ?? 0} <span aria-hidden="true">→</span></Link>
         {roleResult.data?.role === "admin" ? <Link className="profile-admin-link" href="/admin">Открыть панель администратора <span aria-hidden="true">→</span></Link> : null}
       </aside>
     </div>

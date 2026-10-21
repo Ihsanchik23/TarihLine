@@ -29,9 +29,7 @@ const copy = {
   ru: {
     map: "Карта",
     catalog: "Каталог",
-    routes: "Маршруты",
     profile: "Профиль",
-    about: "О проекте",
     compare: "Сравнить",
     layers: "Слои карты",
     events: "События",
@@ -53,10 +51,6 @@ const copy = {
     biographyLocation: "Место связано с биографией; нахождение в выбранном году не установлено.",
     personPeriod: "Привязка относится к выбранному периоду.",
     mapUnavailable: "Карта недоступна. Временная шкала продолжает работать.",
-    aboutTitle: "История в общем контексте",
-    aboutText: "TarihLine показывает изменение политических границ мира с 1900 по 2000 год. События и личности добавляются отдельно и связываются с местом и периодом на карте.",
-    aboutNote: "Совпадение по времени не означает причинную связь. Подтверждённые отношения между событиями будут показаны отдельно.",
-    data: "Данные",
     navigation: "Навигация",
     zoomHint: "Перетаскивайте карту и используйте колёсико или кнопки масштаба.",
     territoryHint: "Наведите на территорию или нажмите, чтобы открыть сведения.",
@@ -69,18 +63,11 @@ const copy = {
     historicalBorders: "Исторические границы",
     bordersPending: "Проверенные границы для этого года ещё не опубликованы",
     reconstruction: "Реконструкция",
-    changesTitle: "Что изменилось",
-    changesNote: "Красным показаны прежние территории, зелёным — новые.",
-    appeared: "Появились",
-    disappeared: "Исчезли",
-    changed: "Изменили границы",
   },
   kk: {
     map: "Карта",
     catalog: "Каталог",
-    routes: "Бағыттар",
     profile: "Профиль",
-    about: "Жоба туралы",
     compare: "Салыстыру",
     layers: "Карта қабаттары",
     events: "Оқиғалар",
@@ -102,10 +89,6 @@ const copy = {
     biographyLocation: "Орын өмірбаянмен байланысты; таңдалған жылы осы жерде болғаны анықталмаған.",
     personPeriod: "Байланыс таңдалған кезеңге қатысты.",
     mapUnavailable: "Карта қолжетімсіз. Уақыт шкаласы жұмысын жалғастырады.",
-    aboutTitle: "Тарихты ортақ контексте көру",
-    aboutText: "TarihLine 1900 жылдан 2000 жылға дейінгі әлемнің саяси шекараларының өзгеруін көрсетеді. Оқиғалар мен тұлғалар редакциялық тексеруден кейін бөлек жарияланады.",
-    aboutNote: "Уақыттың сәйкес келуі себеп-салдарлық байланысты білдірмейді. Расталған қатынастар бөлек көрсетіледі.",
-    data: "Деректер",
     navigation: "Навигация",
     zoomHint: "Картаны жылжытып, масштаб үшін дөңгелекті немесе батырмаларды пайдаланыңыз.",
     territoryHint: "Мәліметтерді ашу үшін аумаққа меңзерді апарыңыз немесе басыңыз.",
@@ -118,11 +101,6 @@ const copy = {
     historicalBorders: "Тарихи шекаралар",
     bordersPending: "Бұл жылға арналған тексерілген шекаралар әлі жарияланбаған",
     reconstruction: "Реконструкция",
-    changesTitle: "Не өзгерді",
-    changesNote: "Бұрынғы аумақтар қызылмен, жаңалары жасылмен көрсетілген.",
-    appeared: "Пайда болды",
-    disappeared: "Жойылды",
-    changed: "Шекарасы өзгерді",
   },
 };
 
@@ -210,7 +188,6 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
   const [showPeople, setShowPeople] = useState(true);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
-  const [showAbout, setShowAbout] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [hoveredTerritory, setHoveredTerritory] = useState<Territory | null>(null);
   const [selectedTerritory, setSelectedTerritory] = useState<Territory | null>(null);
@@ -243,21 +220,6 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
   );
   const previousChangeYear = [...mapChangeYears].reverse().find((value) => value < year) ?? null;
   const nextChangeYear = mapChangeYears.find((value) => value > year) ?? null;
-  const yearChangeSummary = useMemo(
-    () => activeMapLayers.reduce((summary, layer) => {
-      const change = layer.changeSummary[String(year)];
-      if (!change) return summary;
-      return {
-        appeared: summary.appeared + change.appeared,
-        disappeared: summary.disappeared + change.disappeared,
-        changed: summary.changed + change.changed,
-      };
-    }, { appeared: 0, disappeared: 0, changed: 0 }),
-    [activeMapLayers, year],
-  );
-  const showYearChanges = previousChangeYear !== null
-    && mapChangeYears.includes(year)
-    && yearChangeSummary.appeared + yearChangeSummary.disappeared + yearChangeSummary.changed > 0;
 
   useEffect(() => {
     const stored = window.localStorage.getItem("tarihline-language");
@@ -383,15 +345,14 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        if (showAbout) setShowAbout(false);
-        else if (selectedTerritory) setSelectedTerritory(null);
+        if (selectedTerritory) setSelectedTerritory(null);
         else setSelectedId(null);
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [selectedTerritory, showAbout]);
+  }, [selectedTerritory]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -495,16 +456,9 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
           <Link className="nav-button" href="/catalog">
             {t.catalog}
           </Link>
-          <Link className="nav-button" href="/routes">
-            {t.routes}
-          </Link>
           <Link className="nav-button" href="/profile">
             {t.profile}
           </Link>
-          <button className="nav-button" type="button" onClick={() => setShowAbout(true)}>
-            <Icon name="info" />
-            {t.about}
-          </button>
           {hasRecords && (
             <button className="nav-button" type="button" onClick={() => setShowComparison(true)}>
               <Icon name="compare" />
@@ -514,7 +468,6 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
         </nav>
         <div className="header-actions">
           <Link className="mobile-catalog-link" href="/catalog">{t.catalog}</Link>
-          <Link className="mobile-catalog-link" href="/routes">{t.routes}</Link>
           <Link className="mobile-catalog-link" href="/profile">{t.profile}</Link>
           <div className="language-switch" aria-label="Тіл / Язык">
             <button className={language === "kk" ? "is-active" : ""} type="button" onClick={() => setLanguage("kk")}>ҚАЗ</button>
@@ -606,15 +559,6 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
                 : t.bordersPending}
             </span>
           </div>
-          {showYearChanges && <section className="map-change-summary" aria-live="polite">
-            <div className="map-change-summary__heading"><span>{t.changesTitle}</span><strong>{year}</strong></div>
-            <div className="map-change-summary__counts">
-              <span className="is-appeared"><strong>{yearChangeSummary.appeared}</strong>{t.appeared}</span>
-              <span className="is-disappeared"><strong>{yearChangeSummary.disappeared}</strong>{t.disappeared}</span>
-              <span className="is-changed"><strong>{yearChangeSummary.changed}</strong>{t.changed}</span>
-            </div>
-            <p>{t.changesNote}</p>
-          </section>}
           <div className="map-hint">{t.zoomHint} {t.territoryHint}</div>
 
           {hoveredTerritory && !selectedTerritory && <div className="territory-hover" aria-live="polite"><strong>{hoveredTerritory.name}</strong><span>{hoveredTerritory.validFrom}–{hoveredTerritory.validTo}</span></div>}
@@ -709,18 +653,6 @@ export function HistoryExplorer({ records, relations, mapLayers, initialYear, in
         </div>
       </section>
 
-      {showAbout && (
-        <div className="modal-backdrop" role="presentation" onMouseDown={() => setShowAbout(false)}>
-          <section className="about-dialog" role="dialog" aria-modal="true" aria-labelledby="about-title" onMouseDown={(event) => event.stopPropagation()}>
-            <button className="detail-close" type="button" aria-label={t.close} onClick={() => setShowAbout(false)}><Icon name="close" /></button>
-            <span className="about-kicker">TarihLine</span>
-            <h2 id="about-title">{t.aboutTitle}</h2>
-            <p>{t.aboutText}</p>
-            <div className="about-rule"><Icon name="info"/><p>{t.aboutNote}</p></div>
-            <div className="about-meta"><span><strong>1900–2000</strong>{t.data}</span><span><strong>RU · ҚАЗ</strong>Тіл / Язык</span><span><strong>MapLibre</strong>Esri World Ocean</span></div>
-          </section>
-        </div>
-      )}
     </main>
   );
 }
